@@ -99,6 +99,35 @@ const SHAPES = {
   orb: t => `<circle cx="16" cy="16" r="11" fill="${t}" ${K}/><circle cx="16" cy="16" r="11" fill="url(#none)" stroke="${shade(t, -.35)}" stroke-width="1"/>
     <ellipse cx="12" cy="11" rx="4" ry="2.6" fill="#fff" opacity=".55"/><circle cx="20" cy="21" r="2" fill="${shade(t, .4)}" opacity=".6"/>`,
   tentacle: t => `<path d="M5 27 C 3 14, 16 4, 28 7 C 18 9, 10 15, 10 27 Z" fill="${t}" ${K}/><circle cx="13" cy="16" r="1.4" fill="${shade(t, .5)}"/><circle cx="17" cy="11" r="1.2" fill="${shade(t, .5)}"/><circle cx="22" cy="8.5" r="1" fill="${shade(t, .5)}"/>`,
+  coif: t => `<path d="M6 26 C 4 14, 9 4, 16 4 C 23 4, 28 14, 26 26 L21 26 L21 16 C 21 12, 11 12, 11 16 L11 26 Z" fill="${t}" ${K}/><path d="M11 18 C 13 15, 19 15, 21 18" stroke="${shade(t, -.35)}" fill="none"/><path d="M9 9 C 11 6, 14 5, 16 5" stroke="${shade(t, .45)}" fill="none"/>`,
+  dhidebody: t => `<path d="M9 5 L13 4 C 14 8, 18 8, 19 4 L23 5 L28 11 L25 15 L23 13 L23 28 L9 28 L9 13 L7 15 L4 11 Z" fill="${t}" ${K}/>
+    <path d="M12 12 L14 14 L12 16 L14 18 L12 20 M20 12 L18 14 L20 16 L18 18 L20 20" stroke="${shade(t, .4)}" fill="none"/><path d="M16 8 L16 27" stroke="${shade(t, -.35)}" stroke-dasharray="2 1.5"/>`,
+  chaps: t => `<path d="M8 4 L24 4 L25 28 L19 28 L16 13 L13 28 L7 28 Z" fill="${t}" ${K}/><path d="M9 9 L15 9 M17 9 L23 9" stroke="${shade(t, .4)}" stroke-dasharray="1.5 1.5"/><path d="M10 15 L10 26 M22 15 L22 26" stroke="${shade(t, -.3)}"/>`,
+  hat: t => `<path d="M5 24 C 9 22, 23 22, 27 24 L25 27 L7 27 Z" fill="${shade(t, -.2)}" ${K}/><path d="M9 23 C 10 15, 14 6, 20 3 C 19 9, 22 16, 23 23 Z" fill="${t}" ${K}/><circle cx="20" cy="4" r="1.6" fill="#e0c040" ${K}/>`,
+  robe: t => `<path d="M10 4 L13 3 C 14 6, 18 6, 19 3 L22 4 L28 12 L24 15 L23 12 L25 29 L7 29 L9 12 L8 15 L4 12 Z" fill="${t}" ${K}/><path d="M16 6 L16 28" stroke="${shade(t, .45)}" stroke-width="1.6"/><path d="M11 16 L21 16" stroke="#e0c040" stroke-width="1.2"/>`,
+  robeskirt: t => `<path d="M10 4 L22 4 L27 29 L5 29 Z" fill="${t}" ${K}/><path d="M10 7 L22 7" stroke="#e0c040" stroke-width="1.4"/><path d="M13 9 L11 28 M19 9 L21 28" stroke="${shade(t, -.3)}"/>`,
+  staff: t => `<path d="M8 30 L22 6" stroke="#000" stroke-width="4" stroke-linecap="round"/><path d="M8 30 L22 6" stroke="#7a4a22" stroke-width="2.4" stroke-linecap="round"/>
+    <circle cx="23" cy="5" r="4" fill="${t}" ${K}/><circle cx="21.6" cy="3.8" r="1.3" fill="#fff" opacity=".7"/>`,
+  trident: t => `<path d="M9 30 L21 8" stroke="#000" stroke-width="3.6" stroke-linecap="round"/><path d="M9 30 L21 8" stroke="${shade(t, -.25)}" stroke-width="2" stroke-linecap="round"/>
+    <path d="M16 6 L21 9 L26 4 M21 9 L23 2 M18 12 L28 7" stroke="#000" stroke-width="3.4" stroke-linecap="round" fill="none"/><path d="M16 6 L21 9 L26 4 M21 9 L23 2 M18 12 L28 7" stroke="${t}" stroke-width="1.8" stroke-linecap="round" fill="none"/>`,
+  shortbow: t => `<path d="M10 4 C 26 8, 26 24, 10 28" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round"/><path d="M10 4 C 26 8, 26 24, 10 28" fill="none" stroke="${t}" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M10 4 L10 28" stroke="#ddd" stroke-width=".9"/><rect x="18" y="14" width="4" height="4" fill="#5a3a1a" ${K}/>`,
+  longbow: t => `<path d="M7 2 C 30 6, 30 26, 7 30" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round"/><path d="M7 2 C 30 6, 30 26, 7 30" fill="none" stroke="${t}" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M7 2 L7 30" stroke="#ddd" stroke-width=".9"/><rect x="21" y="14" width="4" height="4" fill="#5a3a1a" ${K}/>`,
+  crossbow: t => `<path d="M16 30 L16 8" stroke="#000" stroke-width="4" stroke-linecap="round"/><path d="M16 30 L16 8" stroke="#6a4a2a" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M4 12 C 10 7, 22 7, 28 12" fill="none" stroke="#000" stroke-width="3.6"/><path d="M4 12 C 10 7, 22 7, 28 12" fill="none" stroke="${t}" stroke-width="2"/><path d="M4 12 L16 15 L28 12" stroke="#ddd" stroke-width=".8" fill="none"/>`,
+  arrow: t => `<path d="M6 26 L24 8" stroke="#000" stroke-width="2.6"/><path d="M6 26 L24 8" stroke="#a0703a" stroke-width="1.4"/><path d="M22 6 L29 3 L26 10 Z" fill="${t}" ${K}/>
+    <path d="M5 23 L8 28 L4 27 Z M7 21 L11 26" fill="#eee" stroke="#000" stroke-width=".8"/><path d="M11 26 L14 22" stroke="#000" stroke-width="2.6"/><path d="M8 25 L13 20" stroke="#fff" stroke-width="1.5"/>
+    <path d="M10 28 L16 22" stroke="#000" stroke-width="2.6" opacity="0"/>`,
+  arrowtips: t => `<path d="M6 14 L12 8 L10 16 Z M14 22 L20 16 L18 24 Z M20 10 L26 4 L24 12 Z" fill="${t}" ${K}/>`,
+  bolt: t => `<path d="M6 26 L22 10" stroke="#000" stroke-width="3"/><path d="M6 26 L22 10" stroke="#9aa0a8" stroke-width="1.8"/><path d="M20 8 L27 5 L24 12 Z" fill="${t}" ${K}/><path d="M5 22 L10 27" stroke="#ccc" stroke-width="2"/>`,
+  shaft: t => `<path d="M5 25 L25 5 M8 27 L27 8 M4 21 L21 4" stroke="#000" stroke-width="2.4" stroke-linecap="round"/><path d="M5 25 L25 5 M8 27 L27 8 M4 21 L21 4" stroke="${t}" stroke-width="1.2" stroke-linecap="round"/>`,
+  potion: t => `<path d="M12 3 L20 3 L20 6 L19 6 L19 11 C 25 13, 27 18, 26 22 C 25 28, 20 30, 16 30 C 12 30, 7 28, 6 22 C 5 18, 7 13, 13 11 L13 6 L12 6 Z" fill="#cfe8f4" fill-opacity=".45" ${K}/>
+    <path d="M7.5 19 C 11 17, 21 21, 24.5 19 C 25 25, 21 28.5, 16 28.5 C 11 28.5, 7 25, 7.5 19 Z" fill="${t}"/><rect x="12" y="1.5" width="8" height="3" rx="1" fill="#8a5a2b" ${K}/><ellipse cx="11" cy="17" rx="1.6" ry="3" fill="#fff" opacity=".6"/>`,
+  scroll: t => `<path d="M7 6 L25 6 L25 26 L7 26 Z" fill="#e8dcb0" ${K}/><rect x="4" y="4" width="5" height="24" rx="2.5" fill="${t}" ${K}/><rect x="23" y="4" width="5" height="24" rx="2.5" fill="${t}" ${K}/>
+    <path d="M11 11 L21 11 M11 15 L20 15 M11 19 L18 19" stroke="#6a5a3a" stroke-width="1.2"/>`,
+  scythe: t => `<path d="M10 30 L22 4" stroke="#000" stroke-width="3.6" stroke-linecap="round"/><path d="M10 30 L22 4" stroke="#5a3a1a" stroke-width="2" stroke-linecap="round"/>
+    <path d="M21 5 C 12 2, 4 6, 2 14 C 8 8, 15 7, 20 9 Z" fill="${t}" ${K}/>`,
 };
 function mixHex(a, b, t) {
   const p = h => { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
@@ -114,7 +143,8 @@ function itemIcon(id) {
   else if (it.emoji) html = `<span class="emo">${it.emoji}</span>`;
   else {
     const fn = SHAPES[it.kind] || SHAPES.material;
-    html = `<svg viewBox="0 0 32 32" class="ico" aria-hidden="true">${fn(it.tint || '#999')}</svg>`;
+    const trim = it.trim ? `<path d="M3 29 L29 29" stroke="${it.trim}" stroke-width="2" opacity=".9"/>` : '';
+    html = `<svg viewBox="0 0 32 32" class="ico" aria-hidden="true">${fn(it.tint || '#999')}${it.trim ? `<g opacity=".85">${fn(it.trim).replace(/fill="[^"]*"/g, 'fill="none"').replace(/stroke="#000"/g, 'stroke="' + it.trim + '"')}</g>` : ''}</svg>`;
   }
   return (_iconCache[id] = html);
 }

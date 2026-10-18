@@ -26,8 +26,8 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 
 /* ---------- XP table (classic formula) ---------- */
 const XP_TABLE = [0, 0];
-{ let pts = 0; for (let l = 1; l < 100; l++) { pts += Math.floor(l + 300 * Math.pow(2, l / 7)); XP_TABLE[l + 1] = Math.floor(pts / 4); } }
-function levelOf(xp) { let l = 1; while (l < 99 && xp >= XP_TABLE[l + 1]) l++; return l; }
+{ let pts = 0; for (let l = 1; l < 120; l++) { pts += Math.floor(l + 300 * Math.pow(2, l / 7)); XP_TABLE[l + 1] = Math.floor(pts / 4); } }
+function levelOf(xp, cap = 99) { let l = 1; while (l < cap && xp >= XP_TABLE[l + 1]) l++; return l; }
 
 /* ---------- State ---------- */
 const SAVE_KEY = 'clickscape_save_v1';
@@ -49,12 +49,15 @@ function newState(keep = {}) {
     workers: {}, prog: {},
     target: { mine: 'm_copper_ore', forest: 'w_logs', fish: 'fi_shrimp', dig: 'd_quarry', furnace: 's_bronze', anvil: 'a_bronze_dagger', range: 'c_shrimp', fire: 'f_logs' },
     upgrades: {}, plots: [null, null], useAshes: true,
-    combat: { mon: 'chicken', style: 'attack', food: null, fighting: false, hp: 10, mhp: 0, mmax: 0, pT: 0, mT: 0, respawn: 0, regen: 0, spec: 100, paid: null, sup: false, nextSup: false, drain: 0 },
+    combat: { mon: 'chicken', style: 'attack', food: null, ammo: null, pots: [null, null, null], boost: {}, fighting: false, hp: 10, mhp: 0, mmax: 0, pT: 0, mT: 0, respawn: 0, regen: 0, spec: 100, paid: null, sup: false, nextSup: false, drain: 0 },
     kc: { bandos: 0, armadyl: 0, saradomin: 0, zamorak: 0 },
+    kills: {}, clues: { active: null, done: {} }, barrows: { killed: [], chests: 0 },
+    clog: keep.clog || {}, ach: keep.ach || {}, ch: {}, ge: keep.ge || { f: {}, hist: {}, t: 0, news: [], watch: [] },
+    star: null, nextStar: Date.now() + 12 * 60000, prevMine: null, loadouts: keep.loadouts || [null, null, null, null], cosmetic: keep.cosmetic || {}, locked: keep.locked || {},
     slayer: { master: null, mon: null, left: 0, total: 0, streak: 0, points: 0, done: 0, unlocks: {} },
     museum: keep.museum || {}, pets: keep.pets || {}, asc: keep.asc || { points: 0, count: 0 },
     lifetime: keep.lifetime || { xp: 0, kills: 0, taps: 0, earned: 0 },
-    settings: keep.settings || { vibrate: true },
+    settings: keep.settings || { vibrate: true, sound: true, volume: 0.6, autoLock: true },
     stats: { taps: 0, kills: 0, earned: 0, events: 0, xpRun: 0, rares: 0, started: Date.now() },
     buffs: { frenzy: 0 }, nextEvent: Date.now() + 75000, last: Date.now(), loot: [],
   };
@@ -84,10 +87,10 @@ function save() {
   S.last = Date.now();
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { console.warn('save failed', e); }
 }
-function refreshLevels() { SKILL_ORDER.forEach(s => LV[s] = levelOf(S.xp[s])); }
+function refreshLevels() { SKILL_ORDER.forEach(s => LV[s] = levelOf(S.xp[s], MAX_LVL[s])); }
 const lvl = s => LV[s];
 const totalLevel = () => SKILL_ORDER.reduce((a, s) => a + LV[s], 0);
-const combatLevel = () => Math.floor(0.25 * (LV.defence + LV.hitpoints) + 0.325 * (LV.attack + LV.strength));
+const combatLevel = () => Math.floor(0.25 * (LV.defence + LV.hitpoints + Math.floor(LV.prayer / 2)) + 0.325 * Math.max(LV.attack + LV.strength, Math.floor(LV.ranged * 1.5), Math.floor(LV.magic * 1.5)));
 const maxHp = () => LV.hitpoints;
 const has = id => !!S.upgrades[id];
 
@@ -96,7 +99,7 @@ const have = id => S.bank[id] || 0;
 let bankKeysChanged = true;
 function add(id, n = 1) {
   if (n <= 0) return;
-  if (!S.bank[id]) bankKeysChanged = true;
+  if (!S.bank[id]) { bankKeysChanged = true; if (S.settings?.autoLock && ITEMS[id]?.rare && !(id in S.locked)) S.locked[id] = 1; }
   S.bank[id] = (S.bank[id] || 0) + n;
 }
 function remove(id, n = 1) {
@@ -105,7 +108,7 @@ function remove(id, n = 1) {
   if (S.bank[id] <= 0) { delete S.bank[id]; bankKeysChanged = true; }
   return true;
 }
-function gainCoins(n) { n = Math.floor(n); S.coins += n; S.stats.earned += n; S.lifetime.earned += n; }
+function gainCoins(n) { n = Math.floor(n); S.coins += n; S.stats.earned += n; S.lifetime.earned += n; track('coins', '*', n); }
 
 /* ---------- Multipliers (cached; recalc on change) ---------- */
 let M = {};
@@ -122,7 +125,7 @@ function recalc() {
   M.xp = upgMult('xp') * museumBuff(b => b.type === 'xp') * (1 + 0.02 * asc);
   M.cxp = upgMult('cxp');
   M.sell = upgMult('sell') * museumBuff(b => b.type === 'sell') * (1 + 0.02 * asc);
-  M.luck = upgMult('luck');
+  M.luck = upgMult('luck') * museumBuff(b => b.type === 'luck');
   M.grow = upgMult('grow') * museumBuff(b => b.type === 'grow');
   M.yield = upgMult('yield') * (S.pets.snail ? 1.1 : 1);
   M.dmg = upgMult('damage') * museumBuff(b => b.type === 'damage') * (S.pets.wyrmling ? 1.1 : 1);
@@ -139,6 +142,16 @@ function recalc() {
   M.sxp = upgMult('sxp');
   let bossPets = 0; for (const p in S.pets) if (PETS[p]?.st === 'combat' && p !== 'wyrmling') bossPets++;
   M.dmg *= Math.pow(1.03, bossPets);
+  const cs = clogStats(); M.clogPages = cs.pages;
+  const ap = achPoints();
+  M.xp *= (1 + 0.01 * cs.pages) * (1 + 0.01 * Math.floor(ap / 10));
+  M.dmg *= 1 + 0.01 * cs.pages;
+  M.sell *= 1 + 0.01 * Math.floor(ap / 10);
+  const worn = new Set(Object.values(S.equip).filter(Boolean));
+  const grace = GRACEFUL.filter(g => worn.has(g[0])).length;
+  M.grace = grace; M.rogue = ROGUE.filter(r => worn.has(r[0])).length;
+  M.crewGlobal = (1 + LV.agility * 0.003) * (1 + grace * 0.02 + (grace === 6 ? 0.08 : 0));
+  const starRing = !!ITEMS[S.equip.ring]?.starRing;
   M.tap = {}; M.rate = {};
   const tapAll = upgMult('tapall'), crewAll = upgMult('crewall');
   for (const st of STATION_ORDER) {
@@ -150,14 +163,19 @@ function recalc() {
     sm *= upgMult('station', e => e.st === st) * upgMult('stations', e => e.sts.includes(st));
     for (const p in S.pets) if (PETS[p]?.st === st) sm *= 1.1;
     if (pk(S0.skill)) sm *= 1.25;
+    if (st === 'mine' && starRing) sm *= 1.1;
     M.tap[st] = lvlM * tool * sm * upgMult('tap', e => e.st === st) * tapAll;
-    M.rate[st] = (S.workers[st] || 0) * 0.2 * lvlM * tool * sm * upgMult('crew', e => e.st === st) * crewAll;
+    M.rate[st] = (S.workers[st] || 0) * 0.2 * lvlM * tool * sm * upgMult('crew', e => e.st === st) * crewAll * M.crewGlobal;
   }
-  let atk = 0, str = 0, def = 0;
+  const G = { atk: 0, str: 0, def: 0, ratk: 0, rstr: 0, matk: 0, mdmg: 0 };
   M.reduceGear = 0;
-  for (const slot of GEAR_SLOTS) { const it = ITEMS[S.equip[slot]]; if (it) { atk += it.atk || 0; str += it.str || 0; def += it.def || 0; M.reduceGear += it.reduce || 0; } }
-  M.gear = { atk, str, def };
+  for (const slot of GEAR_SLOTS) { const it = ITEMS[S.equip[slot]]; if (it) { for (const k in G) G[k] += it[k] || 0; M.reduceGear += it.reduce || 0; } }
+  M.gear = G;
   const w = ITEMS[S.equip.weapon];
+  M.wclass = w?.wclass || 'melee';
+  if (!STYLES[M.wclass].some(x => x[0] === S.combat.style)) S.combat.style = STYLES[M.wclass][0][0];
+  M.set = null;
+  for (const b of BARROWS) if (b.pieces.every(p => worn.has(p[0]))) M.set = b.id;
   M.wspd = w?.spd || 1; M.spec = w?.spec ? SPECS[w.spec] : null;
   M.antifire = !!ITEMS[S.equip.shield]?.antifire;
 }
@@ -167,15 +185,17 @@ function toolMult(st) {
   const it = ITEMS[S.equip[slot]];
   return it ? it.mult : 0.25;
 }
+const SKILL_XP_RATE = 0.6;   // skilling XP is slowed vs early versions (120 is the new cap)
+const WORKER_XP = 0.35;      // workers earn 35% of the XP a tap would
 const frenzy = () => now() < S.buffs.frenzy ? 7 : 1;
 
 /* ---------- XP ---------- */
 function gainXP(skill, amt) {
   if (amt <= 0) return;
-  amt *= M.xp * (COMBAT_SKILLS.includes(skill) ? M.cxp : 1);
+  amt *= M.xp * (COMBAT_SKILLS.includes(skill) ? M.cxp : SKILL_XP_RATE);
   S.xp[skill] = Math.min(200e6, S.xp[skill] + amt);
   S.stats.xpRun += amt; S.lifetime.xp += amt;
-  const L = levelOf(S.xp[skill]);
+  const L = levelOf(S.xp[skill], MAX_LVL[skill]);
   if (L > LV[skill]) {
     const old = LV[skill]; LV[skill] = L; recalc();
     if (!OFF) levelUpToast(skill, L);
@@ -203,6 +223,9 @@ function burnChance(a) {
   return clamp(0.6 * (stop - L) / Math.max(1, stop - a.lvl), 0, 0.6);
 }
 function doYield(st, a, n, xpScale = 1) {
+  if (a.thieve) return thieveYield(st, a, n, xpScale);
+  if (a.course) return courseYield(st, a, n, xpScale);
+  if (a.star) return starYield(st, a, n, xpScale);
   if (a.inp) {
     for (const id in a.inp) n = Math.min(n, Math.floor(have(id) / a.inp[id]));
     if (n <= 0) return 0;
@@ -218,6 +241,8 @@ function doYield(st, a, n, xpScale = 1) {
   }
   for (const id in a.out) add(id, a.out[id] * ok);
   gainXP(sk, a.xp * ok * xpScale);
+  track('yield', st, ok); track('act', a.id, ok);
+  if (['mine', 'forest', 'fish', 'dig'].includes(st)) { const k = rollCount(ok, (1 / 3000) * M.luck); if (k) { const t = clueTierFor(LV[sk] * 1.6); add('clue_' + t, k); if (!OFF) { toast(`📜 You find a <b>${t}</b> clue scroll while skilling!`, 'rare'); SFX.play('clue'); } } }
   const tslot = STATIONS[st].tool, tool = tslot && ITEMS[S.equip[tslot]];
   if (tool?.bonus && ok > 0) gainXP(tool.bonus.skill, a.xp * ok * xpScale * tool.bonus.frac);
   // bonus drops
@@ -227,12 +252,13 @@ function doYield(st, a, n, xpScale = 1) {
     const got = {};
     for (let i = 0; i < Math.min(k, 200); i++) { const id = pick(); got[id] = (got[id] || 0) + 1; }
     const scale = k > 200 ? k / 200 : 1;
-    for (const id in got) rareGet(id, Math.round(got[id] * scale), why);
+    for (const id in got) { const q = Math.round(got[id] * scale); rareGet(id, q, why); logItem(id, q); }
   };
+  if (st === 'restore') for (const id in a.out) logItem(id, ok);
   if (bd) batch(rollCount(n, bd.chance * M.luck * (st === 'mine' ? M.gemx : 1)), () => pickWeighted(bd.table), 'skill');
   if (st === 'dig') {
     const site = SITE_BY_ID[a.site];
-    batch(rollCount(n, (1 / 12) * M.luck), () => site.arts[randInt(0, 2)][0], 'artifact');
+    batch(rollCount(n, (1 / 12) * M.luck), () => 'damaged_' + site.arts[randInt(0, 2)][0], 'artifact');
   }
   rollPet(st, n);
   return n;
@@ -246,20 +272,21 @@ function rollPet(st, n) {
 }
 function givePet(pid) {
   if (S.pets[pid]) return;
-  S.pets[pid] = true; recalc();
+  S.pets[pid] = true; logItem('pet:' + pid); recalc();
   const p = PETS[pid];
   const msg = `${p.icon} You have a funny feeling like you're being followed… <b>${p.name}</b> joined you! (${p.desc})`;
-  if (OFF) OFFLOG.push(msg); else { toast(msg, 'pet', 7000); buzz([60, 40, 120]); }
+  if (OFF) OFFLOG.push(msg); else { toast(msg, 'pet', 7000); buzz([60, 40, 120]); SFX.play('pet'); }
 }
 function rareGet(id, q, why) {
   add(id, q);
   const it = ITEMS[id];
   const msg = why === 'artifact' ? `🏺 You found an artifact: <b>${q > 1 ? q + ' × ' : ''}${it.name}</b>` : `✨ ${why === 'drop' ? 'Rare drop' : 'You found'}: <b>${q > 1 ? q + ' × ' : ''}${it.name}</b>`;
   S.stats.rares += q;
-  if (OFF) OFFLOG.push(msg); else { toast(itemIcon(id) + '<span>' + msg + '</span>', 'rare', 4500); buzz(40); }
+  if (OFF) OFFLOG.push(msg); else { toast(itemIcon(id) + '<span>' + msg + '</span>', 'rare', 4500); buzz(40); SFX.play('rare'); }
 }
 function produce(st, clicks, xpScale = 1) {
   const a = ACTIONS[S.target[st]];
+  if (a?.star && !starActive()) { S.target.mine = S.prevMine || 'm_copper_ore'; return -1; }
   if (!a || LV[STATIONS[st].skill] < a.lvl) return -1;
   if (!canMakeOne(a)) return -2;
   S.prog[st] = (S.prog[st] || 0) + clicks;
@@ -271,9 +298,18 @@ function produce(st, clicks, xpScale = 1) {
 }
 let lastNeedToast = 0;
 function tapStation(st, x, y) {
-  const power = M.tap[st] * frenzy();
+  let power = M.tap[st] * frenzy();
+  if (st === 'thieve' && Date.now() < (UI.stunUntil || 0)) { floater(x, y, 'Stunned!', 'bad'); return; }
+  if (st === 'course') {
+    const j = agiJudge();
+    if (j === 'perfect') { power *= 3; S.lifetime.perfect = (S.lifetime.perfect || 0) + 1; floater(x, y - 30, 'PERFECT!', 'good'); SFX.play('perfect'); }
+    else if (j === 'good') { power *= 1.5; floater(x, y - 30, 'Good', 'tap'); }
+    else { floater(x, y - 30, 'You slip!', 'bad'); SFX.play('slip'); return; }
+  }
   S.stats.taps++; S.lifetime.taps++;
+  SFX.play(STATION_SFX[st] || 'click');
   const r = produce(st, power);
+  if (st === 'thieve' && r > 0 && LAST_FAIL >= r) { UI.stunUntil = Date.now() + 1500; floater(x, y, 'Caught! Stunned…', 'bad'); SFX.play('hurt'); return; }
   const a = ACTIONS[S.target[st]];
   if (r === -2) {
     floater(x, y, 'Need materials!', 'bad');
@@ -283,7 +319,7 @@ function tapStation(st, x, y) {
   if (r === -1) return;
   if (r > 0) {
     const outId = Object.keys(a.out)[0];
-    if (!outId) floater(x, y, `+${fmtD(a.xp * r)} xp`, 'good');
+    if (!outId) floater(x, y, a.thieve ? (LAST_LOOT ? `+${LAST_LOOT}` : 'Success!') : a.course ? `+${r} lap${r > 1 ? 's' : ''}` : `+${fmtD(a.xp * r)} xp`, 'good');
     else if (a.burn && LAST_BURNT === r) floater(x, y, 'You burn it!', 'bad');
     else floater(x, y, `+${r} ${ITEMS[outId].name}`, 'good');
   } else floater(x, y, '+' + fmtD(power), 'tap');
@@ -292,13 +328,14 @@ function tapStation(st, x, y) {
 function inputsText(a) { return Object.entries(a.inp || {}).map(([id, q]) => `${q} × ${ITEMS[id].name}`).join(', '); }
 
 /* ---------- Workers ---------- */
+const plural = (w, n) => n === 1 ? w : /man$/.test(w) ? w.replace(/man$/, 'men') : w + 's';
 const hireCost = (st, k = 1) => { const b = STATIONS[st].wbase, n = S.workers[st] || 0; return Math.ceil(b * Math.pow(1.15, n) * (Math.pow(1.15, k) - 1) / 0.15); };
 function hire(st, k) {
   if (k === 'max') { k = 0; while (hireCost(st, k + 1) <= S.coins && k < 500) k++; if (!k) k = 1; }
   const c = hireCost(st, k);
   if (S.coins < c) return toast("You don't have enough coins.", 'warn');
   S.coins -= c; S.workers[st] = (S.workers[st] || 0) + k; recalc();
-  toast(`${STATIONS[st].wicon} Hired ${k} ${STATIONS[st].worker}${k > 1 ? 's' : ''}.`);
+  toast(`${STATIONS[st].wicon} Hired ${k} ${plural(STATIONS[st].worker, k)}.`); SFX.play('coin');
 }
 
 /* ---------- Farming ---------- */
@@ -320,7 +357,7 @@ function harvest(i) {
   if (!plotReady(p)) return 0;
   const c = CROP_BY_ID[p.c];
   const y = Math.max(1, Math.round(randInt(c.y[0], c.y[1]) * M.yield * (p.b ? 1.5 : 1)));
-  add(c.id, y); gainXP('farming', c.hxp * y);
+  add(c.cropItem || c.id, y); gainXP('farming', c.hxp * y); track('yield', 'farm', y);
   S.plots[i] = null;
   rollPet('farm', 1);
   return y;
@@ -331,37 +368,114 @@ function farmTick() {
 }
 
 /* ---------- Combat ---------- */
+const STYLES = {
+  melee: [['attack', 'Accurate', '⚔️'], ['strength', 'Aggressive', '💪'], ['defence', 'Defensive', '🛡️']],
+  ranged: [['r_acc', 'Accurate', '🎯'], ['r_rapid', 'Rapid', '⚡'], ['r_long', 'Longrange', '🛡️']],
+  magic: [['m_std', 'Standard', '🔮'], ['m_def', 'Defensive', '🛡️']],
+};
 const styleBonus = s => S.combat.style === s ? 3 : 0;
 /* Prayer: passive boosts unlocked by level + protection that reduces damage taken */
 function prayerBoost() {
   const P = LV.prayer;
-  if (P >= 70) return { n: 'Piety', a: 1.2, s: 1.23, d: 1.25 };
-  if (P >= 60) return { n: 'Chivalry', a: 1.15, s: 1.18, d: 1.2 };
-  if (P >= 31) return { n: 'Ultimate Strength', a: 1.15, s: 1.15, d: 1.15 };
-  if (P >= 13) return { n: 'Superhuman Strength', a: 1.1, s: 1.1, d: 1.1 };
-  if (P >= 4) return { n: 'Burst of Strength', a: 1.05, s: 1.05, d: 1.05 };
-  return { n: 'None', a: 1, s: 1, d: 1 };
+  if (P >= 77) return { n: 'Piety · Rigour · Augury', a: 1.2, s: 1.23, d: 1.25, r: 1.2, m: 1.25 };
+  if (P >= 70) return { n: 'Piety', a: 1.2, s: 1.23, d: 1.25, r: 1.15, m: 1.15 };
+  if (P >= 60) return { n: 'Chivalry', a: 1.15, s: 1.18, d: 1.2, r: 1.15, m: 1.15 };
+  if (P >= 44) return { n: 'Eagle Eye · Mystic Might', a: 1.15, s: 1.15, d: 1.15, r: 1.15, m: 1.15 };
+  if (P >= 31) return { n: 'Ultimate Strength', a: 1.15, s: 1.15, d: 1.15, r: 1.1, m: 1.1 };
+  if (P >= 13) return { n: 'Superhuman Strength', a: 1.1, s: 1.1, d: 1.1, r: 1.05, m: 1.05 };
+  if (P >= 4) return { n: 'Burst of Strength', a: 1.05, s: 1.05, d: 1.05, r: 1, m: 1 };
+  return { n: 'None', a: 1, s: 1, d: 1, r: 1, m: 1 };
 }
 function reduction() {
   const P = LV.prayer;
   const prot = P >= 43 ? 0.25 + (P - 43) / 56 * 0.15 : 0;
-  return Math.min(0.6, prot + M.capePray + M.reduceGear);
+  return Math.min(0.65, prot + M.capePray + M.reduceGear + (M.set === 'torag' ? 0.1 : 0));
+}
+/* Potion boosts: S.combat.boost = { atk: {f, p, t}, ..., antifire: t } */
+const BOOST_KEY = { attack: 'atk', strength: 'str', defence: 'def', ranged: 'rng', magic: 'mag' };
+function boosted(sk) {
+  const L = LV[sk], b = S.combat.boost?.[BOOST_KEY[sk]];
+  return b && b.t > 0 ? L + b.f + Math.floor(L * b.p) : L;
+}
+function drinkPotion(id, quiet) {
+  const fx = ITEMS[id]?.potion;
+  if (!fx || !remove(id, 1)) return false;
+  const B = S.combat.boost ||= {};
+  for (const k in fx) {
+    if (k === 'antifire') B.antifire = POT_SECONDS;
+    else B[k] = { f: fx[k][0], p: fx[k][1], t: POT_SECONDS };
+  }
+  S.lifetime.pots = (S.lifetime.pots || 0) + 1;
+  track('pot', id, 1);
+  if (!quiet && !OFF) { toast(`🧪 You drink the ${ITEMS[id].name}.`); SFX.play('drink'); }
+  return true;
+}
+function potionNeeded(id) {
+  const fx = ITEMS[id]?.potion, B = S.combat.boost || {};
+  if (!fx) return false;
+  return Object.keys(fx).some(k => k === 'antifire' ? !(B.antifire > 0) : !(B[k]?.t > 0));
+}
+function potTick(dt) {
+  const C = S.combat, B = C.boost ||= {};
+  for (const k in B) { if (k === 'antifire') B.antifire = Math.max(0, B.antifire - dt); else if (B[k]) B[k].t = Math.max(0, B[k].t - dt); }
+  for (const id of C.pots || []) if (id && have(id) && potionNeeded(id)) drinkPotion(id, true);
 }
 const curMon = () => MONSTER_BY_ID[S.combat.mon];
 const onTask = m => S.slayer.mon === m.id && S.slayer.left > 0;
 const helmBonus = m => onTask(m) && ITEMS[S.equip.head]?.slayerHelm ? 7 / 6 : 1;
+const wclass = () => M.wclass || 'melee';
+function ammoOk() {
+  const w = ITEMS[S.equip.weapon];
+  if (!w?.ammo) return true;
+  const a = ITEMS[S.combat.ammo];
+  return !!(a && a.ammo === w.ammo && have(a.id) && a.tier <= (w.ammoCap || 9));
+}
+function bestAmmo() {
+  const w = ITEMS[S.equip.weapon];
+  if (!w?.ammo) return null;
+  return Object.keys(S.bank).filter(id => ITEMS[id].ammo === w.ammo && ITEMS[id].tier <= (w.ammoCap || 9)).sort((a, b) => ITEMS[b].rstr - ITEMS[a].rstr)[0] || null;
+}
+function spellFor() {
+  let s = SPELLS[0];
+  for (const sp of SPELLS) if (LV.magic >= sp[0]) s = sp;
+  return s;
+}
 function maxHit(tap, m = curMon()) {
-  const eff = Math.floor(LV.strength * prayerBoost().s) + 8 + styleBonus('strength');
-  return Math.max(1, Math.floor((0.5 + eff * (M.gear.str + 64) / 640) * M.dmg * M.capeDmg * helmBonus(m) * (tap ? M.tapdmg : 1)));
+  const cls = wclass(), pb = prayerBoost();
+  let base;
+  if (cls === 'ranged') {
+    const eff = Math.floor(boosted('ranged') * pb.r) + 8 + styleBonus('r_acc');
+    const ammo = ITEMS[S.combat.ammo];
+    base = 0.5 + eff * (M.gear.rstr + (ammoOk() && ammo ? ammo.rstr : 0) + 64) / 640;
+  } else if (cls === 'magic') {
+    const w = ITEMS[S.equip.weapon];
+    const lvl = Math.floor(boosted('magic') * pb.m);
+    const raw = w?.cast === 'trident' ? Math.max(1, Math.floor(lvl / 3) - 5) : spellFor()[2];
+    base = raw * (1 + M.gear.mdmg / 100);
+  } else {
+    const eff = Math.floor(boosted('strength') * pb.s) + 8 + styleBonus('strength');
+    base = 0.5 + eff * (M.gear.str + 64) / 640;
+  }
+  return Math.max(1, Math.floor(base * M.dmg * M.capeDmg * helmBonus(m) * (tap ? M.tapdmg : 1)));
 }
 function chanceFormula(A, D) { return A > D ? 1 - (D + 2) / (2 * (A + 1)) : A / (2 * (D + 1)); }
 function hitChance(m, acc = 1) {
-  const A = (Math.floor(LV.attack * prayerBoost().a) + 8 + styleBonus('attack')) * (M.gear.atk + 64) * M.capeAcc * helmBonus(m) * acc;
-  const def = Math.max(0, m.def - (S.combat.mon === m.id ? S.combat.drain || 0 : 0));
+  const cls = wclass(), pb = prayerBoost();
+  let A;
+  if (cls === 'ranged') A = (Math.floor(boosted('ranged') * pb.r) + 8 + styleBonus('r_acc')) * (M.gear.ratk + 64);
+  else if (cls === 'magic') A = (Math.floor(boosted('magic') * pb.m) + 8 + (S.combat.style === 'm_std' ? 2 : 0)) * (M.gear.matk + 64);
+  else A = (Math.floor(boosted('attack') * pb.a) + 8 + styleBonus('attack')) * (M.gear.atk + 64);
+  A *= M.capeAcc * helmBonus(m) * acc;
+  let def = Math.max(0, m.def - (S.combat.mon === m.id ? S.combat.drain || 0 : 0));
+  if (m.weak === cls) def *= 0.6;
   return chanceFormula(A, (def + 9) * 64);
 }
-const enemyHitChance = m => chanceFormula((m.atk + 9) * 64, (Math.floor(LV.defence * prayerBoost().d) + 8 + styleBonus('defence')) * (M.gear.def + 64) * M.capeDef);
-const enemyMaxHit = m => Math.round(m.mh * (m.dragon && !M.antifire ? 3 : 1));
+const enemyHitChance = m => chanceFormula((m.atk + 9) * 64, (Math.floor(boosted('defence') * prayerBoost().d) + 8 + styleBonus('defence') + styleBonus('r_long') + styleBonus('m_def')) * (M.gear.def + 64) * M.capeDef);
+function dragonfireMult() {
+  const pot = (S.combat.boost?.antifire || 0) > 0;
+  return M.antifire ? 1 : pot ? 1.5 : 3;
+}
+const enemyMaxHit = m => Math.round(m.mh * (m.dragon ? dragonfireMult() : 1));
 
 function canFight(m) {
   if (m.sl && LV.slayer < m.sl) return `Requires Slayer level ${m.sl}`;
@@ -373,6 +487,8 @@ function canFight(m) {
     else if (!helm && !have(id) && !Object.values(S.equip).includes(id)) return `Requires a ${ITEMS[id].name}`;
   }
   if (m.leaf && !ITEMS[S.equip.weapon]?.leaf) return 'Only a leaf-bladed weapon can hurt it';
+  if (m.noMelee && wclass() === 'melee') return 'It flies out of reach: use Ranged or Magic';
+  if (wclass() === 'ranged' && !ammoOk()) { const b = bestAmmo(); if (b) S.combat.ammo = b; else return `You need ${ITEMS[S.equip.weapon].ammo === 'bolt' ? 'bolts' : 'arrows'} your weapon can fire`; }
   if (m.god && S.combat.paid !== m.id && (S.kc[m.god] || 0) < GWD_KC) return `Requires ${GWD_KC} ${GODS[m.god]} kill count`;
   if (m.sacrifice && S.combat.paid !== m.id && !have(m.sacrifice)) return `Sacrifice a ${ITEMS[m.sacrifice].name} to enter`;
   return null;
@@ -383,25 +499,44 @@ function monReqs(m) {
   if (m.minCombat) r.push(`Combat ${m.minCombat}`);
   if (m.needs) r.push(ITEMS[m.needs].name);
   if (m.leaf) r.push('Leaf-bladed weapon');
+  if (m.noMelee) r.push('Ranged/Magic only');
   if (m.god) r.push(`${GWD_KC} ${GODS[m.god]} KC`);
   if (m.faction) r.push(`+1 ${GODS[m.faction]} KC`);
   if (m.sacrifice) r.push(`Sacrifice ${ITEMS[m.sacrifice].name}`);
   if (m.dragon) r.push('🔥 Dragonfire');
   if (m.corp) r.push('½ dmg unless spear');
+  if (m.weak) r.push(`Weak to ${m.weak}`);
   return r;
 }
-
-function playerAttack(tap, mult = 1, acc = 1) {
+const STYLE_XP = { attack: [['attack', 4]], strength: [['strength', 4]], defence: [['defence', 4]], r_acc: [['ranged', 4]], r_rapid: [['ranged', 4]], r_long: [['ranged', 2], ['defence', 2]], m_std: [['magic', 4]], m_def: [['magic', 2.6], ['defence', 1.4]] };
+function playerAttack(tap, mult = 1, acc = 1, noAmmo) {
   const C = S.combat, m = curMon();
   if (C.mhp <= 0) return 0;
-  const max = Math.max(1, Math.floor(maxHit(tap, m) * mult));
-  let dmg = rnd() < hitChance(m, acc) ? randInt(1, max) : 0;
+  const cls = wclass();
+  if (cls === 'ranged' && !noAmmo) {
+    if (!ammoOk()) { const b = bestAmmo(); if (!b) { retreat(); if (!OFF) { toast('You have run out of ammo!', 'warn'); UI.force = true; } return 0; } C.ammo = b; }
+    const shots = ITEMS[S.equip.weapon].doubleShot ? 2 : 1;
+    const used = rollCount(shots, 0.2); if (used) remove(C.ammo, Math.min(used, have(C.ammo)));
+  }
+  let max = Math.max(1, Math.floor(maxHit(tap, m) * mult));
+  if (M.set === 'dharok') max = Math.floor(max * (1 + Math.max(0, maxHp() - C.hp) / maxHp()));
+  if (M.set === 'ahrim' && rnd() < 0.25) max = Math.floor(max * 1.3);
+  const hits = M.set === 'verac' && rnd() < 0.25;
+  let dmg = hits || rnd() < hitChance(m, acc) ? randInt(1, max) : 0;
   if (m.corp && !ITEMS[S.equip.weapon]?.spear) dmg = Math.floor(dmg / 2);
   const d = Math.min(dmg, C.mhp);
   C.mhp -= d;
-  if (d > 0) { gainXP(C.style, d * 4); gainXP('hitpoints', d * 1.33); }
-  if (!OFF) splat('m', dmg);
-  if (C.mhp <= 0) killMonster(m);
+  if (d > 0) {
+    for (const [sk, x] of STYLE_XP[C.style] || STYLE_XP.attack) gainXP(sk, d * x);
+    gainXP('hitpoints', d * 1.33);
+    if (M.set === 'guthan' && rnd() < 0.25) C.hp = Math.min(maxHp(), C.hp + d);
+  }
+  if (!OFF) { splat('m', dmg); SFX.play(dmg ? 'hit' : 'miss'); }
+  if (C.mhp <= 0) { killMonster(m); return d; }
+  if (cls === 'ranged' && !noAmmo) {
+    if (ITEMS[S.equip.weapon].doubleShot) return d + playerAttack(tap, mult, acc, true);
+    if (M.set === 'karil' && rnd() < 0.25) return d + playerAttack(tap, mult * 0.5, acc, true);
+  }
   return d;
 }
 function doSpec() {
@@ -414,21 +549,27 @@ function doSpec() {
   if (sp.drain) C.drain = (C.drain || 0) + total;
   if (sp.freeze) C.mT += m.spd;
   if (sp.bleed && C.mhp > 0) { const b = Math.min(C.mhp, sp.bleed); C.mhp -= b; if (!OFF) splat('m', b); if (C.mhp <= 0) killMonster(m); }
-  if (!OFF) floaterOn('#mstage', sp.name + '!', 'tap');
+  if (!OFF) { floaterOn('#mstage', sp.name + '!', 'tap'); SFX.play('spec'); }
   return true;
 }
 function killMonster(m) {
   const C = S.combat;
   S.stats.kills++; S.lifetime.kills++;
+  S.kills[m.id] = (S.kills[m.id] || 0) + 1;
   C.respawn = 1.2;
   if (m.faction) S.kc[m.faction] = (S.kc[m.faction] || 0) + 1;
   const sup = C.sup;
-  if (onTask(m)) {
+  const task = onTask(m);
+  track('kill', m.id, 1);
+  if (m.boss) track('boss', m.id, 1);
+  if (task) {
+    track('task', m.id, 1);
     gainXP('slayer', m.hp * (sup ? 10 : 1) * M.sxp);
     S.slayer.left--;
     if (S.slayer.left <= 0) completeTask();
     else if (S.slayer.unlocks.bigger && !m.boss && rnd() < 1 / 120) { C.nextSup = true; if (!OFF) toast('😤 A superior foe has appeared…', 'pet', 4000); }
   }
+  clueStepKill(m);
   const got = [];
   if (m.coins) { const c = randInt(m.coins[0], m.coins[1]) * (sup ? 3 : 1); gainCoins(c); got.push('🪙' + fmt(c)); }
   for (let roll = 0; roll < (sup ? 4 : 1); roll++) for (const [id, ch, a, b] of m.drops) {
@@ -439,8 +580,12 @@ function killMonster(m) {
     if (has('bonecrusher') && BONE_XP[id]) { gainXP('prayer', BONE_XP[id] * q * 0.5); continue; }
     if (ch <= 1 / 50) rareGet(id, q, 'drop');
     else add(id, q);
+    logItem(id, q);
     got.push((q > 1 ? q + '× ' : '') + ITEMS[id].name);
   }
+  const extra = monsterExtras(m);
+  got.push(...extra);
+  if (m.barrows) barrowsKill(m);
   if (!OFF) {
     S.loot.unshift(`${m.icon} ${sup ? 'Superior ' : ''}${m.name}: ${got.join(', ') || 'nothing'}`);
     S.loot.length = Math.min(S.loot.length, 8);
@@ -452,7 +597,7 @@ function monsterAttack() {
   let dmg = rnd() < enemyHitChance(m) ? randInt(1, enemyMaxHit(m)) : 0;
   if (dmg) dmg = Math.round(dmg * (1 - reduction()));
   C.hp -= dmg;
-  if (!OFF) splat('p', dmg);
+  if (!OFF) { splat('p', dmg); if (dmg) SFX.play('hurt'); }
   for (let k = 0; k < 3 && C.hp > 0 && C.hp <= maxHp() * 0.5; k++) if (!autoEat()) break;
   if (C.hp <= 0) die();
 }
@@ -462,14 +607,14 @@ function autoEat() {
   if (!f) return false;
   remove(f, 1);
   C.hp = Math.min(maxHp(), C.hp + ITEMS[f].heal);
-  if (!OFF) floaterOn('#php', `+${ITEMS[f].heal} 🍖`, 'good');
+  if (!OFF) { floaterOn('#php', `+${ITEMS[f].heal} 🍖`, 'good'); SFX.play('eat'); }
   return true;
 }
 function die() {
   const C = S.combat;
   C.fighting = false; C.hp = maxHp(); C.mhp = 0; C.paid = null;
-  const msg = `💀 Oh dear, you are dead! You were defeated by ${curMon().name}. Bring food, better armour and a higher Prayer level.`;
-  if (OFF) OFFLOG.push(msg); else { toast(msg, 'warn', 6000); UI.force = true; }
+  const msg = `💀 Oh dear, you are dead! You were defeated by ${curMon().name}. Bring food, potions, better armour and a higher Prayer level.`;
+  if (OFF) OFFLOG.push(msg); else { toast(msg, 'warn', 6000); SFX.play('death'); UI.force = true; }
 }
 function startFight(quiet) {
   const C = S.combat, m = curMon();
@@ -491,23 +636,26 @@ function combatTick(dt) {
   if (C.regen >= 8) { C.regen = 0; C.hp = Math.min(maxHp(), C.hp + 1); }
   C.spec = Math.min(100, (C.spec ?? 100) + dt / 3);
   if (!C.fighting) return;
+  potTick(dt);
   const m = curMon();
   if (C.mhp <= 0) {
     C.respawn -= dt;
     if (C.respawn <= 0) {
-      const err = canFight(m);
+      const mm = curMon();
+      const err = canFight(mm);
       if (err) { retreat(); if (!OFF) { toast('🔒 ' + err, 'warn'); UI.force = true; } return; }
       C.sup = C.nextSup; C.nextSup = false; C.drain = 0;
-      C.mmax = Math.round(m.hp * (C.sup ? 2.5 : 1)); C.mhp = C.mmax; C.pT = M.aspd * M.wspd; C.mT = m.spd;
+      C.mmax = Math.round(mm.hp * (C.sup ? 2.5 : 1)); C.mhp = C.mmax; C.pT = attackInterval(); C.mT = mm.spd;
       if (!OFF) { $('#mstage')?.classList.remove('dead'); UI.force = true; }
     }
     return;
   }
   if (has('auto_spec') && M.spec && C.spec >= M.spec.cost) doSpec();
   C.pT -= dt;
-  while (C.pT <= 0 && C.mhp > 0) { playerAttack(false); C.pT += M.aspd * M.wspd; }
+  while (C.pT <= 0 && C.mhp > 0 && C.fighting) { playerAttack(false); C.pT += attackInterval(); }
   if (C.mhp > 0 && C.fighting) { C.mT -= dt; while (C.mT <= 0 && C.fighting) { monsterAttack(); C.mT += m.spd; } }
 }
+const attackInterval = () => M.aspd * M.wspd * (S.combat.style === 'r_rapid' ? 0.83 : 1);
 
 /* ---------- Slayer ---------- */
 function taskPool(ms) {
@@ -582,11 +730,12 @@ function tapMonster(x, y) {
 /* ---------- Items: sell, equip, eat, open ---------- */
 const sellPrice = id => Math.max(1, Math.floor(ITEMS[id].value * M.sell));
 function sell(id, q) {
+  if (S.locked[id]) return toast(`${ITEMS[id].name} is locked. Unlock it first.`, 'warn');
   q = Math.min(q, have(id));
   if (q <= 0) return;
   remove(id, q);
   gainCoins(sellPrice(id) * q);
-  toast(`Sold ${fmt(q)} × ${ITEMS[id].name} for 🪙${fmt(sellPrice(id) * q)}`);
+  toast(`Sold ${fmt(q)} × ${ITEMS[id].name} for 🪙${fmt(sellPrice(id) * q)}`); SFX.play('coin');
 }
 function reqOk(req) { return !req || Object.entries(req).every(([s, l]) => LV[s] >= l); }
 function reqText(req) { return Object.entries(req || {}).map(([s, l]) => `${SKILLS[s].name} ${l}`).join(', '); }
@@ -612,6 +761,8 @@ function eat(id) {
   toast(`You eat the ${it.name}. It heals some health.`);
 }
 function openItem(id, q = 1) {
+  if (ITEMS[id].clue) return readClue(ITEMS[id].clue);
+  if (ITEMS[id].lamp) return openLampPicker();
   q = Math.min(q, have(id)); if (q <= 0) return;
   remove(id, q);
   const got = {}; let coins = 0;
@@ -685,7 +836,7 @@ const ascendGain = () => Math.floor(Math.sqrt(S.stats.xpRun / 40000));
 function ascend() {
   const g = ascendGain();
   if (totalLevel() < ASCEND_MIN_TOTAL || g < 1) return;
-  const keep = { museum: S.museum, pets: S.pets, asc: { points: S.asc.points + g, count: S.asc.count + 1 }, lifetime: S.lifetime, settings: S.settings };
+  const keep = { museum: S.museum, pets: S.pets, asc: { points: S.asc.points + g, count: S.asc.count + 1 }, lifetime: S.lifetime, settings: S.settings, clog: S.clog, ach: S.ach, ge: S.ge, loadouts: S.loadouts, cosmetic: S.cosmetic, locked: S.locked };
   S = newState(keep); refreshLevels(); recalc(); save();
   closeModal(); go('skills');
   toast(`🌀 You ascend! You now hold <b>${S.asc.points}</b> Ancient Runes.`, 'pet', 7000);
@@ -700,7 +851,8 @@ let activeEvent = null;
 function scheduleEvent() { S.nextEvent = Date.now() + randInt(120, 300) * 1000 * M.events; }
 function spawnEvent() {
   if (activeEvent || document.hidden) return;
-  const ev = EVENTS[randInt(0, EVENTS.length - 1)];
+  const se = activeSeason();
+  const ev = se && rnd() < 0.5 ? { icon: se.icon, name: se.name + ' spirit' } : EVENTS[randInt(0, EVENTS.length - 1)];
   const b = document.createElement('button');
   b.className = 'rand-event'; b.innerHTML = ev.icon; b.title = ev.name; b.setAttribute('aria-label', ev.name);
   const W = window.innerWidth, H = window.innerHeight;
@@ -714,6 +866,8 @@ function spawnEvent() {
 }
 function claimEvent(ev, b) {
   b.remove(); activeEvent = null; S.stats.events++;
+  const se = activeSeason();
+  if (se) { const k = randInt(3, 8); add(se.token, k); toast(`${se.icon} You also receive <b>${k} ${ITEMS[se.token].name.toLowerCase()}s</b> for the ${se.name} event!`, 'rare', 5000); }
   const r = pickWeighted([['frenzy', 40], ['lamp', 25], ['coins', 25], ['box', 10]]);
   if (r === 'frenzy') { S.buffs.frenzy = Date.now() + 45000; toast(`${ev.icon} The ${ev.name} grants you a <b>FRENZY</b>! All production ×7 for 45 seconds!`, 'pet', 5000); }
   else if (r === 'lamp') {
@@ -725,15 +879,17 @@ function claimEvent(ev, b) {
     const c = Math.floor(Math.max(60 * totalLevel(), S.coins * 0.12));
     gainCoins(c); toast(`${ev.icon} The ${ev.name} drops a pouch of <b>🪙${fmt(c)}</b>!`, 'pet', 5000);
   } else { add('mystery_box', 1); toast(`${ev.icon} The ${ev.name} gives you a 🎁 <b>Mystery box</b>! Open it in your bank.`, 'pet', 5000); }
-  buzz(30);
+  buzz(30); SFX.play('rare');
 }
 
 /* ---------- Main tick ---------- */
 function tickCore(dt) {
   const f = frenzy();
-  for (const st of STATION_ORDER) { const r = M.rate[st]; if (r > 0) produce(st, r * f * dt, 0.5); }
+  for (const st of STATION_ORDER) { const r = M.rate[st]; if (r > 0) produce(st, r * f * dt, WORKER_XP); }
   combatTick(dt);
   farmTick();
+  starTick();
+  geTick();
 }
 function simulateOffline() {
   const t = Date.now();
@@ -782,7 +938,7 @@ function xpBar(sk) {
 }
 function xpProgress(sk) {
   const L = LV[sk];
-  if (L >= 99) return [1, `${fmt(S.xp[sk])} xp · MAX`];
+  if (L >= MAX_LVL[sk]) return [1, `${fmt(S.xp[sk])} xp · MAX`];
   const a = XP_TABLE[L], b = XP_TABLE[L + 1];
   return [(S.xp[sk] - a) / (b - a), `${fmt(S.xp[sk])} / ${fmt(b)} xp`];
 }
@@ -1145,7 +1301,7 @@ function quickSell(kind) {
     else if (kind === 'gem') ok = it.cat === 'gem';
     else if (kind === 'smith') ok = (it.cat === 'gear' || it.cat === 'tool') && it.tier && it.tier < 7;
     else if (kind === 'junk') ok = id === 'burnt_fish' || id === 'ashes';
-    if (!ok) continue;
+    if (!ok || S.locked[id]) continue;
     const n = have(id); total += sellPrice(id) * n; count += n; remove(id, n);
   }
   if (!count) return toast('Nothing to sell.', 'warn');
@@ -1214,19 +1370,10 @@ function viewMenu() {
 /* --- Modal & toasts --- */
 function openModal(html) { const m = $('#modal'); m.innerHTML = `<div class="modal-card panel"><button class="x" data-act="close">✕</button>${html}</div>`; m.hidden = false; UI.modal = true; }
 function closeModal() { const m = $('#modal'); m.hidden = true; m.innerHTML = ''; UI.modal = false; UI.force = true; }
-function toast(html, cls = '', ms = 2800) {
-  if (OFF) return;
-  const box = $('#toasts');
-  const t = document.createElement('div');
-  t.className = 'toast ' + cls; t.innerHTML = html;
-  box.prepend(t);
-  while (box.children.length > 3) box.lastChild.remove();
-  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 400); }, ms);
-}
 function levelUpToast(sk, L) {
   toast(`<span class="lu-icon">${SKILLS[sk].icon}</span><span><b>Congratulations!</b> You've just advanced a ${SKILLS[sk].name} level. You are now level <b>${L}</b>.${L === 99 ? ' 🏆 MAX LEVEL! 🏆' : ''}</span>`, 'lvlup', 3200);
   burst();
-  buzz(25);
+  buzz(25); SFX.play('level');
   UI.force = true;
 }
 function burst() {
@@ -1272,57 +1419,63 @@ function render() {
   UI.force = false; UI.sig = sig;
   const v = $('#view');
   const y = window.scrollY;
+  const fa = document.activeElement, fid = fa && fa.id && v.contains(fa) ? fa.id : null, sel = fid ? [fa.selectionStart, fa.selectionEnd] : null;
   v.innerHTML = VIEWS[UI.view]();
   window.scrollTo(0, y);
+  if (fid) { const n = document.getElementById(fid); if (n) { n.focus(); try { n.setSelectionRange(sel[0], sel[1]); } catch (e) { } } }
   $$('#nav button').forEach(b => b.classList.toggle('on', b.dataset.nav === UI.view || (UI.view === 'skill' && b.dataset.nav === 'skills')));
   LIVE = {
     prog: $$('[data-prog]', v), count: $$('[data-count]', v), xp: $$('[data-xp]', v), xpt: $$('[data-xptext]', v),
     tp: $$('[data-tappower]', v), rate: $$('[data-rate]', v), ipm: $$('[data-ipm]', v), hire: $$('[data-hire]', v),
     afford: $$('[data-afford]', v), status: $$('[data-status]', v), plot: $$('[data-plot]', v), plott: $$('[data-plottime]', v), live: $$('[data-live]', v),
   };
+  postRender();
   liveUpdate();
 }
+const setT = (e, v) => { if (e._v !== v) { e._v = v; e.textContent = v; } };
 function liveUpdate() {
-  $('#coins').textContent = fmt(S.coins);
+  setT($('#coins'), fmt(S.coins));
   const fr = now() < S.buffs.frenzy;
   const bf = $('#buffs');
-  bf.innerHTML = fr ? `<span class="buff">🔥×7 ${Math.ceil((S.buffs.frenzy - now()) / 1000)}s</span>` : '';
+  const bh = fr ? `<span class="buff">🔥×7 ${Math.ceil((S.buffs.frenzy - now()) / 1000)}s</span>` : ''; if (bf._h !== bh) { bf._h = bh; bf.innerHTML = bh; }
   const L = LIVE;
   if (!L.prog) return;
   L.prog.forEach(e => { const st = e.dataset.prog, a = ACTIONS[S.target[st]]; e.style.width = clamp((S.prog[st] || 0) / a.hp * 100, 0, 100) + '%'; });
-  L.count.forEach(e => { const n = have(e.dataset.count); if (e.dataset.qty !== undefined) { e.textContent = qtyText(n); e.className = 'qty ' + qtyClass(n); } else e.textContent = fmt(n); });
+  L.count.forEach(e => { const n = have(e.dataset.count); if (e.dataset.qty !== undefined) { setT(e, qtyText(n)); const c = 'qty ' + qtyClass(n); if (e.className !== c) e.className = c; } else setT(e, fmt(n)); });
   L.xp.forEach(e => e.style.width = xpProgress(e.dataset.xp)[0] * 100 + '%');
-  L.xpt.forEach(e => e.textContent = xpProgress(e.dataset.xptext)[1]);
-  L.tp.forEach(e => e.textContent = fmtD(M.tap[e.dataset.tappower] * frenzy()));
-  L.rate.forEach(e => e.textContent = fmtD(M.rate[e.dataset.rate] * frenzy()));
-  L.ipm.forEach(e => { const st = e.dataset.ipm, a = ACTIONS[S.target[st]]; e.textContent = fmtD(M.rate[st] * frenzy() / a.hp * 60); });
-  L.hire.forEach(e => { const [st, k] = e.dataset.hire.split(':'); const c = hireCost(st, +k); e.textContent = '🪙' + fmt(c); e.parentElement.classList.toggle('poor', S.coins < c); });
+  L.xpt.forEach(e => setT(e, xpProgress(e.dataset.xptext)[1]));
+  L.tp.forEach(e => setT(e, fmtD(M.tap[e.dataset.tappower] * frenzy())));
+  L.rate.forEach(e => setT(e, fmtD(M.rate[e.dataset.rate] * frenzy())));
+  L.ipm.forEach(e => { const st = e.dataset.ipm, a = ACTIONS[S.target[st]]; setT(e, fmtD(M.rate[st] * frenzy() / a.hp * 60)); });
+  L.hire.forEach(e => { const [st, k] = e.dataset.hire.split(':'); const c = hireCost(st, +k); setT(e, '🪙' + fmt(c)); const poor = S.coins < c; if (e.parentElement._p !== poor) { e.parentElement._p = poor; e.parentElement.classList.toggle('poor', poor); } });
   L.afford.forEach(e => {
     let ok = S.coins >= +e.dataset.afford;
     if (ok && e.dataset.items) { const it = JSON.parse(e.dataset.items); for (const id in it) if (have(id) < it[id]) ok = false; }
-    e.classList.toggle('poor', !ok);
+    if (e._p !== !ok) { e._p = !ok; e.classList.toggle('poor', !ok); }
   });
   L.status.forEach(e => {
     const st = e.dataset.status, a = ACTIONS[S.target[st]];
-    e.textContent = !canMakeOne(a) ? '⚠ out of materials' : '';
+    setT(e, !canMakeOne(a) ? '⚠ out of materials' : '');
   });
   L.plot.forEach(e => { const p = S.plots[e.dataset.plot]; if (p) e.style.width = clamp((now() - p.t0) / p.dur * 100, 0, 100) + '%'; });
-  L.plott.forEach(e => { const p = S.plots[e.dataset.plottime]; if (p) { const left = (p.t0 + p.dur - now()) / 1000; e.textContent = left > 0 ? fmtTime(left) : 'Ready! Tap to harvest'; } });
+  liveExtra(L);
+  L.plott.forEach(e => { const p = S.plots[e.dataset.plottime]; if (p) { const left = (p.t0 + p.dur - now()) / 1000; setT(e, left > 0 ? fmtTime(left) : 'Ready! Tap to harvest'); } });
   if (UI.view === 'combat') {
     const C = S.combat, m = MONSTER_BY_ID[C.mon];
     L.live.forEach(e => {
       const k = e.dataset.live;
       if (k === 'php') e.style.width = clamp(C.hp / maxHp() * 100, 0, 100) + '%';
-      if (k === 'phptext') e.textContent = `${Math.max(0, C.hp)} / ${maxHp()}`;
+      if (k === 'phptext') setT(e, `${Math.max(0, C.hp)} / ${maxHp()}`);
       const mx = C.fighting && C.mmax ? C.mmax : m.hp;
       if (k === 'mhp') e.style.width = clamp((C.fighting ? C.mhp : mx) / mx * 100, 0, 100) + '%';
-      if (k === 'mhptext') e.textContent = `${C.fighting ? Math.max(0, C.mhp) : mx} / ${mx}`;
+      if (k === 'mhptext') setT(e, `${C.fighting ? Math.max(0, C.mhp) : mx} / ${mx}`);
       if (k === 'spec') e.style.width = C.spec + '%';
-      if (k === 'spectext') e.textContent = `Special ${Math.floor(C.spec)}%`;
-      if (k === 'specbtn') e.classList.toggle('poor', !M.spec || C.spec < M.spec.cost || !C.fighting);
-      if (k === 'taskleft') e.textContent = S.slayer.left;
-      if (k.startsWith('kc-')) e.textContent = fmt(S.kc[k.slice(3)] || 0);
+      if (k === 'spectext') setT(e, `Special ${Math.floor(C.spec)}%`);
+      if (k === 'specbtn') { const pr = !M.spec || C.spec < M.spec.cost || !C.fighting; if (e._p !== pr) { e._p = pr; e.classList.toggle('poor', pr); } }
+      if (k === 'taskleft') setT(e, String(S.slayer.left));
+      if (k.startsWith('kc-')) setT(e, fmt(S.kc[k.slice(3)] || 0));
     });
+    liveCombatExtra(L);
     const ll = $('#lootlog');
     if (ll) { const h = S.loot.map(l => `<div>${esc(l)}</div>`).join('') || '<span class="muted">Kill something!</span>'; if (ll._h !== h) { ll.innerHTML = h; ll._h = h; } }
   }
@@ -1475,4 +1628,3 @@ function boot() {
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; UI.force = true; });
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => { });
 }
-boot();

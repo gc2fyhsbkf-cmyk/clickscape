@@ -10,19 +10,26 @@ const SKILLS = {
   hitpoints:   { name: 'Hitpoints',   icon: '❤️' },
   mining:      { name: 'Mining',      icon: '⛏️' },
   strength:    { name: 'Strength',    icon: '💪' },
+  agility:     { name: 'Agility',     icon: '🏃' },
   smithing:    { name: 'Smithing',    icon: '🔨' },
-  woodcutting: { name: 'Woodcutting', icon: '🪓' },
   defence:     { name: 'Defence',     icon: '🛡️' },
+  herblore:    { name: 'Herblore',    icon: '🧪' },
   fishing:     { name: 'Fishing',     icon: '🎣' },
-  firemaking:  { name: 'Firemaking',  icon: '🔥' },
-  prayer:      { name: 'Prayer',      icon: '🙏' },
+  ranged:      { name: 'Ranged',      icon: '🎯' },
+  thieving:    { name: 'Thieving',    icon: '🦹' },
   cooking:     { name: 'Cooking',     icon: '🍳' },
-  farming:     { name: 'Farming',     icon: '🌱' },
-  slayer:      { name: 'Slayer',      icon: '💀' },
+  prayer:      { name: 'Prayer',      icon: '🙏' },
+  crafting:    { name: 'Crafting',    icon: '🧵' },
+  firemaking:  { name: 'Firemaking',  icon: '🔥' },
+  magic:       { name: 'Magic',       icon: '🔮' },
+  fletching:   { name: 'Fletching',   icon: '🏹' },
+  woodcutting: { name: 'Woodcutting', icon: '🪓' },
   archaeology: { name: 'Archaeology', icon: '🏺' },
+  slayer:      { name: 'Slayer',      icon: '💀' },
+  farming:     { name: 'Farming',     icon: '🌱' },
 };
 const SKILL_ORDER = Object.keys(SKILLS);
-const COMBAT_SKILLS = ['attack', 'strength', 'defence', 'hitpoints', 'slayer'];
+const COMBAT_SKILLS = ['attack', 'strength', 'defence', 'hitpoints', 'slayer', 'ranged', 'magic'];
 
 /* Stations are the "machines" you tap and hire workers for. */
 const STATIONS = {
@@ -34,9 +41,15 @@ const STATIONS = {
   fish:    { skill: 'fishing',     name: 'Fishing spot', verb: 'Fish',  tool: 'rod',     worker: 'Fisherman',        wicon: '🧓', wbase: 25, upg: "Angler's" },
   range:   { skill: 'cooking',     name: 'Range',     verb: 'Cook',     worker: 'Cook',             wicon: '🧑‍🍳', wbase: 30, upg: "Chef's" },
   altar:   { skill: 'prayer',      name: 'Gilded altar', verb: 'Offer', worker: 'Acolyte',          wicon: '🧑‍🦲', wbase: 50, upg: 'Devotion' },
+  herb:    { skill: 'herblore',    name: 'Apothecary', verb: 'Mix',   worker: 'Herbalist',        wicon: '🧑‍⚕️', wbase: 60, upg: "Herbalist's" },
+  craft:   { skill: 'crafting',    name: 'Crafting table', verb: 'Craft', worker: 'Artisan',      wicon: '🧑‍🎨', wbase: 50, upg: "Artisan's" },
+  fletch:  { skill: 'fletching',   name: 'Fletching bench', verb: 'Fletch', worker: 'Fletcher',   wicon: '🧝', wbase: 40, upg: "Fletcher's" },
+  thieve:  { skill: 'thieving',    name: 'Marketplace', verb: 'Steal', worker: 'Apprentice thief', wicon: '🥷', wbase: 30, upg: "Rogue's" },
+  course:  { skill: 'agility',     name: 'Agility course', verb: 'Run', worker: 'Pacer',          wicon: '🏃', wbase: 45, upg: "Runner's" },
+  restore: { skill: 'archaeology', name: 'Restoration bench', verb: 'Restore', worker: 'Conservator', wicon: '🧑‍🔧', wbase: 80, upg: "Conservator's" },
   dig:     { skill: 'archaeology', name: 'Dig site',  verb: 'Excavate', tool: 'mattock', worker: 'Field Assistant',  wicon: '🧑‍🔬', wbase: 60, upg: "Excavator's" },
 };
-const STATION_ORDER = ['mine', 'forest', 'fish', 'dig', 'furnace', 'anvil', 'range', 'fire', 'altar'];
+const STATION_ORDER = ['mine', 'forest', 'fish', 'dig', 'restore', 'thieve', 'course', 'furnace', 'anvil', 'craft', 'fletch', 'herb', 'range', 'fire', 'altar'];
 const SKILL_STATIONS = {};
 for (const [id, s] of Object.entries(STATIONS)) (SKILL_STATIONS[s.skill] ||= []).push(id);
 
@@ -280,9 +293,9 @@ gear('dragon_chainbody', 'Dragon chainbody', 'body', [0, 0, 60], { defence: 60 }
 gear('bandos_chestplate', 'Bandos chestplate', 'body', [0, 4, 98], { defence: 65 }, { kind: 'platebody', tint: GOD_TINT.bandos, value: 18000000 });
 gear('bandos_tassets', 'Bandos tassets', 'legs', [0, 2, 71], { defence: 65 }, { kind: 'platelegs', tint: GOD_TINT.bandos, value: 25000000 });
 gear('bandos_boots', 'Bandos boots', 'feet', [0, 2, 20], { defence: 65 }, { kind: 'boots', tint: GOD_TINT.bandos });
-gear('armadyl_helmet', 'Armadyl helmet', 'head', [10, 0, 30], { defence: 70 }, { kind: 'full_helm', tint: GOD_TINT.armadyl, value: 8000000 });
-gear('armadyl_chestplate', 'Armadyl chestplate', 'body', [14, 0, 66], { defence: 70 }, { kind: 'platebody', tint: GOD_TINT.armadyl, value: 30000000 });
-gear('armadyl_chainskirt', 'Armadyl chainskirt', 'legs', [10, 0, 48], { defence: 70 }, { kind: 'platelegs', tint: GOD_TINT.armadyl, value: 30000000 });
+gear('armadyl_helmet', 'Armadyl helmet', 'head', [0, 0, 26], { defence: 70, ranged: 70 }, { kind: 'coif', tint: GOD_TINT.armadyl, ratk: 10, value: 8000000 });
+gear('armadyl_chestplate', 'Armadyl chestplate', 'body', [0, 0, 56], { defence: 70, ranged: 70 }, { kind: 'dhidebody', tint: GOD_TINT.armadyl, ratk: 33, value: 30000000 });
+gear('armadyl_chainskirt', 'Armadyl chainskirt', 'legs', [0, 0, 32], { defence: 70, ranged: 70 }, { kind: 'chaps', tint: GOD_TINT.armadyl, ratk: 20, value: 30000000 });
 gear('torva_full_helm', 'Torva full helm', 'head', [8, 8, 62], { defence: 80 }, { kind: 'full_helm', tint: '#43404e', value: 120000000 });
 gear('torva_platebody', 'Torva platebody', 'body', [12, 8, 120], { defence: 80 }, { kind: 'platebody', tint: '#43404e', value: 180000000 });
 gear('torva_platelegs', 'Torva platelegs', 'legs', [8, 6, 88], { defence: 80 }, { kind: 'platelegs', tint: '#43404e', value: 150000000 });
@@ -317,7 +330,8 @@ gear('ring_of_wealth', 'Ring of wealth', 'ring', [0, 0, 0], null, { kind: 'ring'
 gear('fire_cape', 'Fire cape', 'cape', [1, 4, 11], null, { kind: 'cape', tint: '#e8601a', value: 1 });
 gear('infernal_cape', 'Infernal cape', 'cape', [2, 8, 12], null, { kind: 'cape', tint: '#b8180c', value: 1 });
 const CAPE_TINT = { attack: '#8a1a14', hitpoints: '#d8d8d8', mining: '#2e5a6a', strength: '#1e7a3a', smithing: '#5a5a5a', woodcutting: '#6a8a2a', defence: '#3a5ab8',
-  fishing: '#3a7ab8', firemaking: '#e08020', prayer: '#f0f0f0', cooking: '#6a2a8a', farming: '#3a8a3a', slayer: '#1e1e1e', archaeology: '#b8823a' };
+  fishing: '#3a7ab8', firemaking: '#e08020', prayer: '#f0f0f0', cooking: '#6a2a8a', farming: '#3a8a3a', slayer: '#1e1e1e', archaeology: '#b8823a',
+  agility: '#2a3a8a', herblore: '#2a7a2a', ranged: '#5a6a2a', thieving: '#5a2a5a', crafting: '#8a6a3a', magic: '#3a3ab8', fletching: '#1e5a5a' };
 SKILL_ORDER.forEach(s => gear(s + '_cape', SKILLS[s].name + ' cape', 'cape', [0, 0, 9], { [s]: 99 }, { kind: 'cape', tint: CAPE_TINT[s], perk: s, rare: false, value: 99000 }));
 gear('max_cape', 'Max cape', 'cape', [5, 5, 12], Object.fromEntries(SKILL_ORDER.map(s => [s, 99])), { kind: 'cape', tint: '#7a1a1a', perk: 'max', value: 2277000 });
 

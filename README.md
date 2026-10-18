@@ -46,6 +46,10 @@ Your save lives on the device. Use **More → Export save** to back it up or mov
 | Bosses | Dagannoth Rex, Kraken, Cerberus, Alchemical Hydra, Corporeal Beast, TzTok-Jad (fire cape), TzKal-Zuk (infernal cape) |
 | Gear | 10 equipment slots, special attacks, 2-handers, jewellery from the furnace, skillcapes & max cape, combine recipes (infernal tools, tentacle, spirit shields…) |
 
-All balance numbers live in `data.js` — tweak away.
+| v3 skills | Herblore (potions + auto-drink setup), Crafting (gems, jewellery, d'hide, mystic), Fletching (bows, arrows), Thieving, Agility (timing runs, graceful), Ranged & Magic combat |
+| v3 systems | Skill guides, message feed, bank search & locks, sounds, Barrows, clue scrolls, collection log, achievements, daily/weekly challenges, shooting stars, seasonal events, loadouts & character view, Grand Exchange, drop tables |
+| Levels | Combat skills & Prayer cap at 99; every other skill goes to 120, with primal-tier and post-99 content |
+
+All balance numbers live in `data.js` and `data3.js` — tweak away.
 
 *Fan-made project. Not affiliated with or endorsed by any game company.*
