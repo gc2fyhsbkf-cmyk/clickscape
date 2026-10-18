@@ -53,6 +53,11 @@ Your save lives on the device. Use **More → Export save** to back it up or mov
 | v4 ascension | Rising total-level cost, essence perk shop (head start, veteran levels, keep workers/tools/gear, XP, luck, offline, damage), ascension loot (capes, ring, cape, crown, pet), level caps +3 per ascension (up to 129/150), the 🌌 Rift with ascension-gated monsters |
 | v4 content | Metal dragons, Cyclops defenders, KBD, Kalphite Queen, Giant Mole, Chaos Elemental, Sarachnis, Vorkath, Zulrah, Chambers of Xeric raid (twisted bow etc.), prayer scrolls, master clues, bigger clue & casket loot, Voidforged tier, Celestial weapons, 125–145 skilling unlocks |
 | v4.3 | Loot screen for boxes & clues, combat academy (paid auto-training), clue step swap/destroy, grouped bank, Ranged & Magic shop tabs, Halloween monsters/boosts/goodies, seasonal items kept through ascension |
+| v4.4 combat | Fight analysis strip (DPS, time-to-kill, damage taken, food timer, risk + tips), Setup / Monsters / Stats tabs, style comparison |
+| v5.0 skills | Runecrafting (runes power up spells), Construction (sawmill, furniture, planks for house rooms), Hunter (implings, chinchompas, moths) |
+| v5.0 content | Wintertodt, Tempoross, Zalcano & Mahogany Homes with skilling outfits; Wilderness (revenants, Callisto, Venenatis, Vet'ion, Scorpia, 10% coin loss on death); Theatre of Blood; Grotesque Guardians, Abyssal Sire, Thermy; Slayer block list & longer tasks; Christmas event monsters |
+| v5.0 systems | 17 quests, 20 diary tiers (permanent bonuses), skill mastery past max level, XP tracker, bulk hire, save files, message filters, compact mode, interactive random events, daily login streak, titles |
+| v5.1 | GE buy/sell any amount, shop cleanup (no Slayer kit, boss drops or high tools), level-banded monster loot + rare drop table + tool drops, tool finds while skilling, auto-sell loot filter, skill milestones, buy-missing-inputs bar, livestock farming (feathers, hides, newts, silk, dragonhide) |
 | v4 coin sinks | Player house (12 rooms), wishing well blessings, infinite guild investments |
 
 All balance numbers live in `data.js`, `data3.js` and `data4.js` — tweak away.

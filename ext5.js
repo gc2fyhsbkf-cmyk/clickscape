@@ -418,10 +418,10 @@ document.addEventListener('click', e => {
   if (rer) { UI.force = true; render(); liveUpdate(); }
 }, true);
 
-(function boot5() {
+function boot5() {
   seasonKeepRefresh();
   boot4();
   S.academy ||= { t: {}, grounds: 0, on: true };
   S.sboost ||= {};
   recalc(); UI.force = true; render();
-})();
+}
