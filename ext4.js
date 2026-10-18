@@ -8,7 +8,7 @@ const room = id => S.house?.[id] || 0;
 const wellOn = id => (S.well?.[id] || 0) > now();
 
 /* ---------- Level caps rise with ascension ---------- */
-const capBonus = () => Math.min(30, 3 * (S.asc?.count || 0));
+function capBonus() { return Math.min(30, 3 * (S.asc?.count || 0)); }
 function applyCaps() { for (const s of SKILL_ORDER) MAX_LVL[s] = (CAP99.includes(s) ? 99 : 120) + capBonus(); }
 function skillXpMult(skill) { return skill === 'prayer' ? 1 + 0.25 * room('altar') : 1; }
 function offlineHours() { return (has('long_rest') ? 24 : 8) + 6 * perk('tireless') + 8 * room('portal'); }
@@ -50,7 +50,7 @@ function recalc4() {
 }
 
 /* ---------- Ascension ---------- */
-const ascReqTotal = () => Math.min(2400, 600 + 200 * (S?.asc?.count || 0));
+const ascReqTotal = () => { const n = SKILL_ORDER.length, c = S?.asc?.count || 0; return Math.round(Math.min(n * 115, n * (30 + 9 * c)) * (typeof ascReqMult === 'function' ? ascReqMult() : 1)); };
 ascendGain = function () { return Math.floor(Math.sqrt(S.stats.xpRun / 40000) * (1 + 0.1 * (S.asc.count || 0))); };
 function ascRewards(n) {
   const r = [['ascension_cape_' + Math.min(n, 10), 1], ['xp_lamp', n + 1], ['mystery_box', n + 1]];

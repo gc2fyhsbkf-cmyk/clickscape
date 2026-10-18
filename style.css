@@ -536,3 +536,13 @@ body.compact .splat, body.compact .floater { display: none; }
 .milestones small { font-size: .68rem; color: #cbbd9c; margin-left: 4px; }
 .buybar { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; padding: 6px 8px; }
 .buybar .ico { width: 18px; height: 18px; vertical-align: middle; }
+.hpbar.pp i { background: linear-gradient(#3ac8d8, #1a8aa8); }
+
+/* ---------- v6.0 ---------- */
+.relic-tier { margin: 8px 0; } .relic-tier.locked { opacity: .5; }
+.relic-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 4px; }
+.relic { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px; border-radius: 6px; border: 1px solid #000; background: #2a231a; color: #f0e6c8; font: inherit; box-shadow: inset 0 0 0 1px #4e4434; text-align: center; }
+.relic span { font-size: 1.4rem; } .relic b { font-size: .72rem; } .relic small { font-size: .6rem; color: #cbbd9c; line-height: 1.2; }
+.relic.on { background: #3a2a5a; box-shadow: inset 0 0 0 2px #c8a8ff, 0 0 10px rgba(200,168,255,.4); }
+.relic.dim { opacity: .35; } .relic:disabled:not(.on) { cursor: default; }
+.tut div { font-size: .82rem; padding: 2px 0; }

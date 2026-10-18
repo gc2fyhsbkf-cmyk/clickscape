@@ -59,7 +59,7 @@ const QUESTS = [
   { id: 'sote', name: 'Song of the Elves', icon: '🧝', qp: 1, req: { qp: 55, skills: { agility: 70, construction: 70, farming: 70, herblore: 70, hunter: 70, mining: 70, smithing: 70, woodcutting: 70 } }, xp: { agility: 20000, construction: 20000, farming: 20000, herblore: 20000, hunter: 20000, mining: 20000, smithing: 20000, woodcutting: 20000 }, buff: { allst: 1.1 }, txt: 'Prifddinas: every worker +10% faster' },
 ];
 gear('quest_cape', 'Quest point cape', 'cape', [0, 0, 9], null, { kind: 'cape', tint: '#2a5ad8', trim: '#e8e8e8', untradeable: true, value: 1 });
-const QP_TOTAL = QUESTS.reduce((a, q) => a + q.qp, 0);
+let QP_TOTAL = QUESTS.reduce((a, q) => a + q.qp, 0);
 const questPoints = () => QUESTS.reduce((a, q) => a + (S.quests?.[q.id] ? q.qp : 0), 0);
 maxHit = (orig => function (tap, m) { const v = orig(tap, m); return S.quests?.dt1 && wclass() === 'magic' ? Math.floor(v * 1.15) : v; })(maxHit);
 function questReqs(q) {

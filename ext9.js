@@ -200,5 +200,3 @@ harvest = (orig => function (i) {
   if (y && c?.extra) for (const [id, a, b] of c.extra) if (ITEMS[id]) add(id, Math.max(1, Math.round(randInt(a, b) * M.yield)));
   return y;
 })(harvest);
-
-boot8();
