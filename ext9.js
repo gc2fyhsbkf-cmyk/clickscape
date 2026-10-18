@@ -94,8 +94,8 @@ doYield = (orig => function (st, a, n, xpScale) {
   if (done > 0 && slot && TOOL_LADDER[slot]) {
     const cur = ITEMS[S.equip[slot]], sk = STATIONS[st].skill;
     const next = TOOL_LADDER[slot].find(t => t.mult > (cur?.mult || 0) && !have(t.id) && (!t.req || Object.entries(t.req).every(([s, l]) => (LV[s] || 0) >= l - 10)));
-    if (next) {
-      const rate = (next.id.startsWith('dragon') ? 1 / 20000 : 1 / 3000) * M.luck;
+    if (next && !next.id.startsWith('dragon')) {
+      const rate = (1 / 3000) * M.luck;
       if (rollCount(done, rate) > 0) { add(next.id, 1); logItem(next.id, 1); if (!OFF) { toast(`🎁 While ${STATIONS[st].verb.toLowerCase()}ing you find a <b>${next.name}</b>!`, 'pet', 6000); SFX.play('rare'); } }
     }
   }
@@ -143,6 +143,17 @@ viewSkill = (orig => function () {
   return i > 0 ? html.slice(0, i) + bar + html.slice(i) : html + bar;
 })(viewSkill);
 VIEWS.skill = viewSkill;
+
+/* ---------- Safety: strip any action input/output that points at a missing item ---------- */
+for (const a of Object.values(ACTIONS)) for (const k of ['out', 'inp']) if (a[k]) for (const id in a[k]) if (!ITEMS[id]) { console.warn('missing item in action', a.id, id); delete a[k][id]; }
+
+/* ---------- Skill grid in the classic order ---------- */
+(function () {
+  const want = ['attack', 'hitpoints', 'mining', 'strength', 'agility', 'smithing', 'defence', 'herblore', 'fishing', 'ranged', 'thieving', 'cooking', 'prayer', 'crafting', 'firemaking',
+    'magic', 'fletching', 'woodcutting', 'runecrafting', 'slayer', 'farming', 'construction', 'hunter', 'archaeology'];
+  const rest = SKILL_ORDER.filter(s => !want.includes(s));
+  SKILL_ORDER.splice(0, SKILL_ORDER.length, ...want.filter(s => SKILLS[s]), ...rest);
+})();
 
 /* ---------- Input ---------- */
 document.addEventListener('click', e => {

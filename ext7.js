@@ -133,7 +133,7 @@ it7('reward_pool', 'Tempoross reward pool', 1, 'crate', '#3a6a8a', { cat: 'misc'
 it7('zalcano_cache', 'Zalcano cache', 1, 'crate', '#6a6a7a', { cat: 'misc', open: true });
 it7('tool_crate', 'Carpenter crate', 1, 'crate', '#a87a4a', { cat: 'misc', open: true });
 A7({ id: 'f_wintertodt', st: 'fire', name: '❄️ Subdue the Wintertodt', lvl: 50, xp: 95, hp: 12, out: { ashes: 1 }, icon: 'supply_crate', crate: ['supply_crate', 1 / 12] });
-A7({ id: 'fi_tempoross', st: 'fish', name: '🌊 Fight Tempoross', lvl: 35, xp: 70, hp: 11, out: { raw_tuna: 1 }, icon: 'reward_pool', crate: ['reward_pool', 1 / 12] });
+A7({ id: 'fi_tempoross', st: 'fish', name: '🌊 Fight Tempoross', lvl: 35, xp: 70, hp: 11, out: { raw_salmon: 1 }, icon: 'reward_pool', crate: ['reward_pool', 1 / 12] });
 A7({ id: 'm_zalcano', st: 'mine', name: '🔥 Smash Zalcano', lvl: 70, xp: 120, hp: 18, out: { coal: 1 }, icon: 'zalcano_cache', crate: ['zalcano_cache', 1 / 12] });
 A7({ id: 'b_mahogany_homes', st: 'workbench', name: '🏡 Mahogany Homes contract', lvl: 20, xp: 110, hp: 14, inp: { plank: 2 }, out: { crude_chair: 1 }, icon: 'tool_crate', crate: ['tool_crate', 1 / 10] });
 Object.assign(PETS, {
