@@ -1,8 +1,8 @@
 // Clickscape service worker — keeps the game playable offline.
 // Bump VERSION whenever you change any file so phones pick up the update.
-const VERSION = 'clickscape-v3.1';
-const FILES = ['./', 'index.html', 'style.css?v=3.1', 'data.js?v=3.1', 'data3.js?v=3.1', 'icons.js?v=3.1', 'game.js?v=3.1', 'systems.js?v=3.1', 'ui3.js?v=3.1',
-  'manifest.webmanifest?v=3.1', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
+const VERSION = 'clickscape-v4.1';
+const FILES = ['./', 'index.html', 'style.css?v=4.1', 'data.js?v=4.1', 'data3.js?v=4.1', 'data4.js?v=4.1', 'icons.js?v=4.1', 'game.js?v=4.1', 'systems.js?v=4.1', 'ui3.js?v=4.1', 'ext4.js?v=4.1',
+  'manifest.webmanifest?v=4.1', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).catch(() => { })); self.skipWaiting(); });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k)))).then(() => self.clients.claim()));

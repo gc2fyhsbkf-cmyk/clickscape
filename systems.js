@@ -391,7 +391,7 @@ function starTick() {
   if (!S.star && now() >= (S.nextStar || 0)) {
     const tier = randInt(1, 9);
     S.star = { tier, dust: starDust(tier), until: now() + randInt(40, 75) * 60000 };
-    S.nextStar = S.star.until + randInt(45, 150) * 60000;
+    S.nextStar = S.star.until + randInt(45, 150) * 60000 * (M.eventFreq || 1);
     syncStarAction();
     if (!OFF) { toast(`🌠 A tier ${tier} shooting star has crashed near the mine! Mining ${tier * 10} needed.`, 'pet', 6000); SFX.play('star'); }
     UI.force = true;

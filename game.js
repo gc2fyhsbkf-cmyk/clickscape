@@ -26,7 +26,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 
 /* ---------- XP table (classic formula) ---------- */
 const XP_TABLE = [0, 0];
-{ let pts = 0; for (let l = 1; l < 120; l++) { pts += Math.floor(l + 300 * Math.pow(2, l / 7)); XP_TABLE[l + 1] = Math.floor(pts / 4); } }
+{ let pts = 0; for (let l = 1; l < 150; l++) { pts += Math.floor(l + 300 * Math.pow(2, l / 7)); XP_TABLE[l + 1] = Math.floor(pts / 4); } }
 function levelOf(xp, cap = 99) { let l = 1; while (l < cap && xp >= XP_TABLE[l + 1]) l++; return l; }
 
 /* ---------- State ---------- */
@@ -78,12 +78,15 @@ function load() {
   if (S.bank.shadow_whip) { add('abyssal_whip', S.bank.shadow_whip); delete S.bank.shadow_whip; }
   if (S.equip.weapon === 'shadow_whip') S.equip.weapon = 'abyssal_whip';
   for (const k in S.equip) if (S.equip[k] && !ITEMS[S.equip[k]]) S.equip[k] = null;
-  for (const k in S.bank) if (!ITEMS[k]) delete S.bank[k];
+  for (const k in S.bank) if (!ITEMS[k] || !(S.bank[k] > 0)) delete S.bank[k];
   if (!MONSTER_BY_ID[S.combat.mon]) S.combat.mon = 'chicken';
   for (const st of STATION_ORDER) if (!ACTIONS[S.target[st]]) S.target[st] = STATION_ACTIONS[st][0].id;
-  refreshLevels(); recalc();
+  S.house ||= {}; S.unlocks ||= {}; S.raids ||= {}; S.well ||= {}; S.guild ||= 0; S.asc.essence ??= S.asc.points || 0; S.asc.perks ||= {};
+  applyCaps(); refreshLevels(); recalc();
 }
+let SAVE_LOCK = false;
 function save() {
+  if (SAVE_LOCK || !S) return;
   S.last = Date.now();
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { console.warn('save failed', e); }
 }
@@ -103,6 +106,7 @@ function add(id, n = 1) {
   S.bank[id] = (S.bank[id] || 0) + n;
 }
 function remove(id, n = 1) {
+  if (!(n > 0) || !id) return n === 0;
   if (have(id) < n) return false;
   S.bank[id] -= n;
   if (S.bank[id] <= 0) { delete S.bank[id]; bankKeysChanged = true; }
@@ -178,6 +182,7 @@ function recalc() {
   for (const b of BARROWS) if (b.pieces.every(p => worn.has(p[0]))) M.set = b.id;
   M.wspd = w?.spd || 1; M.spec = w?.spec ? SPECS[w.spec] : null;
   M.antifire = !!ITEMS[S.equip.shield]?.antifire;
+  recalc4();
 }
 function toolMult(st) {
   const slot = STATIONS[st].tool;
@@ -193,7 +198,8 @@ const frenzy = () => now() < S.buffs.frenzy ? 7 : 1;
 function gainXP(skill, amt) {
   if (amt <= 0) return;
   amt *= M.xp * (COMBAT_SKILLS.includes(skill) ? M.cxp : SKILL_XP_RATE);
-  S.xp[skill] = Math.min(200e6, S.xp[skill] + amt);
+  amt *= skillXpMult(skill);
+  S.xp[skill] = Math.min(5e9, S.xp[skill] + amt);
   S.stats.xpRun += amt; S.lifetime.xp += amt;
   const L = levelOf(S.xp[skill], MAX_LVL[skill]);
   if (L > LV[skill]) {
@@ -217,7 +223,7 @@ function pickWeighted(table) {
 }
 function canMakeOne(a) { if (!a.inp) return true; for (const id in a.inp) if (have(id) < a.inp[id]) return false; return true; }
 function burnChance(a) {
-  const stop = a.burn - (has('gauntlets') ? 10 : 0);
+  const stop = a.burn - (has('gauntlets') ? 10 : 0) - 2 * (S.house?.kitchen || 0);
   const L = LV.cooking;
   if (L >= stop) return 0;
   return clamp(0.6 * (stop - L) / Math.max(1, stop - a.lvl), 0, 0.6);
@@ -377,7 +383,7 @@ const styleBonus = s => S.combat.style === s ? 3 : 0;
 /* Prayer: passive boosts unlocked by level + protection that reduces damage taken */
 function prayerBoost() {
   const P = LV.prayer;
-  if (P >= 77) return { n: 'Piety · Rigour · Augury', a: 1.2, s: 1.23, d: 1.25, r: 1.2, m: 1.25 };
+  if (P >= 77 && (S.unlocks?.rigour || S.unlocks?.augury)) return { n: 'Piety' + (S.unlocks.rigour ? ' · Rigour' : '') + (S.unlocks.augury ? ' · Augury' : ''), a: 1.2, s: 1.23, d: 1.25, r: S.unlocks.rigour ? 1.2 : 1.15, m: S.unlocks.augury ? 1.25 : 1.15 };
   if (P >= 70) return { n: 'Piety', a: 1.2, s: 1.23, d: 1.25, r: 1.15, m: 1.15 };
   if (P >= 60) return { n: 'Chivalry', a: 1.15, s: 1.18, d: 1.2, r: 1.15, m: 1.15 };
   if (P >= 44) return { n: 'Eagle Eye · Mystic Might', a: 1.15, s: 1.15, d: 1.15, r: 1.15, m: 1.15 };
@@ -450,13 +456,13 @@ function maxHit(tap, m = curMon()) {
   } else if (cls === 'magic') {
     const w = ITEMS[S.equip.weapon];
     const lvl = Math.floor(boosted('magic') * pb.m);
-    const raw = w?.cast === 'trident' ? Math.max(1, Math.floor(lvl / 3) - 5) : spellFor()[2];
+    const raw = w?.cast === 'trident' ? Math.max(1, Math.floor(lvl / 3) - 5) : w?.cast === 'swamp' ? Math.max(1, Math.floor(lvl / 3) - 2) : w?.cast === 'celestial' ? Math.floor(lvl / 2.5) : spellFor()[2];
     base = raw * (1 + M.gear.mdmg / 100);
   } else {
     const eff = Math.floor(boosted('strength') * pb.s) + 8 + styleBonus('strength');
     base = 0.5 + eff * (M.gear.str + 64) / 640;
   }
-  return Math.max(1, Math.floor(base * M.dmg * M.capeDmg * helmBonus(m) * (tap ? M.tapdmg : 1)));
+  return Math.max(1, Math.floor(base * M.dmg * M.capeDmg * helmBonus(m) * weaponVs(m) * (tap ? M.tapdmg : 1)));
 }
 function chanceFormula(A, D) { return A > D ? 1 - (D + 2) / (2 * (A + 1)) : A / (2 * (D + 1)); }
 function hitChance(m, acc = 1) {
@@ -478,6 +484,7 @@ function dragonfireMult() {
 const enemyMaxHit = m => Math.round(m.mh * (m.dragon ? dragonfireMult() : 1));
 
 function canFight(m) {
+  if (m.ascReq && S.asc.count < m.ascReq) return `Requires ${m.ascReq} ascension${m.ascReq > 1 ? 's' : ''}`;
   if (m.sl && LV.slayer < m.sl) return `Requires Slayer level ${m.sl}`;
   if (m.minCombat && combatLevel() < m.minCombat) return `Requires combat level ${m.minCombat}`;
   if (m.needs) {
@@ -506,6 +513,8 @@ function monReqs(m) {
   if (m.dragon) r.push('🔥 Dragonfire');
   if (m.corp) r.push('½ dmg unless spear');
   if (m.weak) r.push(`Weak to ${m.weak}`);
+  if (m.ascReq) r.push(`🌀 ${m.ascReq} ascension${m.ascReq > 1 ? 's' : ''}`);
+  if (m.raid) r.push(`Raid room ${m.order + 1}/5`);
   return r;
 }
 const STYLE_XP = { attack: [['attack', 4]], strength: [['strength', 4]], defence: [['defence', 4]], r_acc: [['ranged', 4]], r_rapid: [['ranged', 4]], r_long: [['ranged', 2], ['defence', 2]], m_std: [['magic', 4]], m_def: [['magic', 2.6], ['defence', 1.4]] };
@@ -513,7 +522,7 @@ function playerAttack(tap, mult = 1, acc = 1, noAmmo) {
   const C = S.combat, m = curMon();
   if (C.mhp <= 0) return 0;
   const cls = wclass();
-  if (cls === 'ranged' && !noAmmo) {
+  if (cls === 'ranged' && !noAmmo && ITEMS[S.equip.weapon]?.ammo) {
     if (!ammoOk()) { const b = bestAmmo(); if (!b) { retreat(); if (!OFF) { toast('You have run out of ammo!', 'warn'); UI.force = true; } return 0; } C.ammo = b; }
     const shots = ITEMS[S.equip.weapon].doubleShot ? 2 : 1;
     const used = rollCount(shots, 0.2); if (used) remove(C.ammo, Math.min(used, have(C.ammo)));
@@ -547,6 +556,7 @@ function doSpec() {
   for (let i = 0; i < sp.hits && C.mhp > 0; i++) total += playerAttack(false, sp.dmg, sp.acc);
   if (sp.heal) C.hp = Math.min(maxHp(), C.hp + Math.floor(total * sp.heal));
   if (sp.drain) C.drain = (C.drain || 0) + total;
+  if (sp.drainPct && total > 0) C.drain = (C.drain || 0) + Math.round(m.def * sp.drainPct);
   if (sp.freeze) C.mT += m.spd;
   if (sp.bleed && C.mhp > 0) { const b = Math.min(C.mhp, sp.bleed); C.mhp -= b; if (!OFF) splat('m', b); if (C.mhp <= 0) killMonster(m); }
   if (!OFF) { floaterOn('#mstage', sp.name + '!', 'tap'); SFX.play('spec'); }
@@ -586,6 +596,7 @@ function killMonster(m) {
   const extra = monsterExtras(m);
   got.push(...extra);
   if (m.barrows) barrowsKill(m);
+  if (m.raid) raidKill(m);
   if (!OFF) {
     S.loot.unshift(`${m.icon} ${sup ? 'Superior ' : ''}${m.name}: ${got.join(', ') || 'nothing'}`);
     S.loot.length = Math.min(S.loot.length, 8);
@@ -634,7 +645,7 @@ function combatTick(dt) {
   const C = S.combat;
   C.regen += dt * M.regen;
   if (C.regen >= 8) { C.regen = 0; C.hp = Math.min(maxHp(), C.hp + 1); }
-  C.spec = Math.min(100, (C.spec ?? 100) + dt / 3);
+  C.spec = Math.min(100, (C.spec ?? 100) + dt / 3 * (M.specRegen || 1));
   if (!C.fighting) return;
   potTick(dt);
   const m = curMon();
@@ -832,10 +843,10 @@ function buyUpgrade(id) {
 }
 
 /* ---------- Ascension (prestige) ---------- */
-const ascendGain = () => Math.floor(Math.sqrt(S.stats.xpRun / 40000));
+function ascendGain() { return Math.floor(Math.sqrt(S.stats.xpRun / 40000)); }
 function ascend() {
   const g = ascendGain();
-  if (totalLevel() < ASCEND_MIN_TOTAL || g < 1) return;
+  if (totalLevel() < ascReqTotal() || g < 1) return;
   const keep = { museum: S.museum, pets: S.pets, asc: { points: S.asc.points + g, count: S.asc.count + 1 }, lifetime: S.lifetime, settings: S.settings, clog: S.clog, ach: S.ach, ge: S.ge, loadouts: S.loadouts, cosmetic: S.cosmetic, locked: S.locked };
   S = newState(keep); refreshLevels(); recalc(); save();
   closeModal(); go('skills');
@@ -848,7 +859,7 @@ const EVENTS = [
   { icon: '🐸', name: 'Frog Prince' }, { icon: '🍺', name: 'Drunken Dwarf' }, { icon: '📦', name: 'Supply Drop' },
 ];
 let activeEvent = null;
-function scheduleEvent() { S.nextEvent = Date.now() + randInt(120, 300) * 1000 * M.events; }
+function scheduleEvent() { S.nextEvent = Date.now() + randInt(120, 300) * 1000 * M.events * (M.eventFreq || 1); }
 function spawnEvent() {
   if (activeEvent || document.hidden) return;
   const se = activeSeason();
@@ -895,7 +906,7 @@ function simulateOffline() {
   const t = Date.now();
   let dt = (t - S.last) / 1000;
   if (dt < 30) return;
-  const cap = (has('long_rest') ? 24 : 8) * 3600;
+  const cap = offlineHours() * 3600;
   const capped = dt > cap;
   dt = Math.min(dt, cap);
   OFF = true; OFFLOG = [];
@@ -1318,16 +1329,16 @@ function viewUpgrades() {
       <small class="cost">🪙${fmt(u.cost)}${Object.entries(u.items || {}).map(([id, q]) => ` + ${q}× ${ITEMS[id].name} (<span data-count="${id}">${fmt(have(id))}</span>)`).join('')}</small></div>
       <button class="btn" data-act="upg" data-id="${u.id}" data-afford="${u.cost}" ${u.items ? 'data-items="' + esc(JSON.stringify(u.items)) + '"' : ''}>Buy</button></div>`;
   const g = ascendGain();
-  const canAsc = totalLevel() >= ASCEND_MIN_TOTAL && g >= 1;
+  const canAsc = totalLevel() >= ascReqTotal() && g >= 1;
   return `<div class="panel"><h2>⭐ Upgrades</h2><p class="muted">Upgrades unlock as you level, hire workers and fight. Each one is permanent for this run.</p></div>
     ${now() < S.buffs.frenzy ? '<div class="panel glow">🔥 FRENZY active! ×7 production</div>' : ''}
     <div class="list">${avail.map(card).join('') || '<p class="muted pad">No upgrades available right now — keep training!</p>'}</div>
     ${soon.length ? `<div class="panel"><h3>Coming up</h3>${soon.map(u => `<div class="upg locked"><div class="upg-icon">❔</div><div class="upg-main"><b>???</b><small>Unlocks at: ${upgReqText(u)}</small></div></div>`).join('')}</div>` : ''}
     <div class="panel asc"><h3>🌀 Ascension</h3>
       <p>Reset your levels, items, coins, workers and upgrades to earn <b>Ancient Runes</b>. Each rune permanently gives <b>+5%</b> production and <b>+2%</b> XP &amp; sell prices.</p>
-      <p class="muted">Museum collections, pets and runes are kept. Requires total level ${ASCEND_MIN_TOTAL}.</p>
+      <p class="muted">Museum collections, pets and runes are kept. Requires total level ${ascReqTotal()}.</p>
       <p>You hold <b class="y">${S.asc.points}</b> runes · ascending now grants <b class="y">+${g}</b></p>
-      <button class="btn big ${canAsc ? '' : 'disabled'}" data-act="ascend">${canAsc ? 'Ascend…' : `Total level ${totalLevel()}/${ASCEND_MIN_TOTAL}`}</button></div>
+      <button class="btn big ${canAsc ? '' : 'disabled'}" data-act="ascend">${canAsc ? 'Ascend…' : `Total level ${totalLevel()}/${ascReqTotal()}`}</button></div>
     ${owned.length ? `<details class="panel"><summary>Owned upgrades (${owned.length})</summary>${owned.map(u => `<div class="owned">${u.icon} <b>${u.name}</b> <small class="muted">${u.desc}</small></div>`).join('')}</details>` : ''}`;
 }
 
@@ -1570,7 +1581,7 @@ document.addEventListener('click', e => {
     case 'quicksell': quickSell(id); break;
     case 'upg': buyUpgrade(id); break;
     case 'ascend': {
-      if (totalLevel() < ASCEND_MIN_TOTAL || ascendGain() < 1) { toast(`Reach total level ${ASCEND_MIN_TOTAL} to ascend.`, 'warn'); break; }
+      if (totalLevel() < ascReqTotal() || ascendGain() < 1) { toast(`Reach total level ${ascReqTotal()} to ascend.`, 'warn'); break; }
       openModal(`<h2>🌀 Ascend?</h2><p>You will gain <b class="y">${ascendGain()}</b> Ancient Runes (total ${S.asc.points + ascendGain()}).</p>
         <p>Everything except museum collections, pets and runes will be reset.</p><button class="btn big danger" data-act="ascend-yes">Yes, ascend</button><button class="btn" data-act="close">Not yet</button>`);
       break;
@@ -1583,19 +1594,30 @@ document.addEventListener('click', e => {
       openModal(`<h2>Export save</h2><p class="muted">Copy this code somewhere safe.</p><textarea class="code" readonly>${code}</textarea><button class="btn big" data-act="copy">Copy</button>`);
       break;
     }
-    case 'copy': { const ta = $('#modal textarea'); ta.select(); navigator.clipboard?.writeText(ta.value).then(() => toast('Copied!'), () => document.execCommand('copy')); break; }
+    case 'copy': { const ta = $('#modal textarea'); ta.focus(); ta.select(); ta.setSelectionRange(0, ta.value.length); navigator.clipboard?.writeText(ta.value).then(() => toast('Copied!'), () => document.execCommand('copy')); break; }
     case 'import': openModal(`<h2>Import save</h2><textarea class="code" placeholder="Paste your save code"></textarea><button class="btn big" data-act="import-go">Load save</button>`); break;
     case 'import-go': {
       try {
-        const json = decodeURIComponent(escape(atob($('#modal textarea').value.trim())));
-        JSON.parse(json);
-        localStorage.setItem(SAVE_KEY, json); location.reload();
+        const raw = $('#modal textarea').value.trim();
+        let json;
+        if (raw.startsWith('{')) json = raw;
+        else {
+          let b = raw.replace(/[^A-Za-z0-9+/=_-]/g, '').replace(/-/g, '+').replace(/_/g, '/');
+          while (b.length % 4) b += '=';
+          json = decodeURIComponent(escape(atob(b)));
+        }
+        const data = JSON.parse(json);
+        if (!data || typeof data !== 'object' || !data.xp) throw new Error('not a save');
+        SAVE_LOCK = true;
+        localStorage.setItem(SAVE_KEY, json);
+        toast('💾 Save imported, reloading…');
+        setTimeout(() => location.reload(), 300);
       } catch (err) { toast('That save code is not valid.', 'warn'); }
       break;
     }
     case 'savenow': save(); toast('💾 Game saved.'); break;
     case 'wipe': openModal(`<h2>Delete everything?</h2><p>This permanently deletes your save on this device, including runes and pets.</p><button class="btn big danger" data-act="wipe-yes">Delete save</button><button class="btn" data-act="close">Cancel</button>`); break;
-    case 'wipe-yes': localStorage.removeItem(SAVE_KEY); S = null; location.reload(); break;
+    case 'wipe-yes': SAVE_LOCK = true; localStorage.removeItem(SAVE_KEY); location.reload(); break;
   }
   if (!['close', 'skill'].includes(d.act)) { render(); liveUpdate(); }
 });

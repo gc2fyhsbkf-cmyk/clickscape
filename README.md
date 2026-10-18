@@ -50,6 +50,10 @@ Your save lives on the device. Use **More → Export save** to back it up or mov
 | v3 systems | Skill guides, message feed, bank search & locks, sounds, Barrows, clue scrolls, collection log, achievements, daily/weekly challenges, shooting stars, seasonal events, loadouts & character view, Grand Exchange, drop tables |
 | Levels | Combat skills & Prayer cap at 99; every other skill goes to 120, with primal-tier and post-99 content |
 
-All balance numbers live in `data.js` and `data3.js` — tweak away.
+| v4 ascension | Rising total-level cost, essence perk shop (head start, veteran levels, keep workers/tools/gear, XP, luck, offline, damage), ascension loot (capes, ring, cape, crown, pet), level caps +3 per ascension (up to 129/150), the 🌌 Rift with ascension-gated monsters |
+| v4 content | Metal dragons, Cyclops defenders, KBD, Kalphite Queen, Giant Mole, Chaos Elemental, Sarachnis, Vorkath, Zulrah, Chambers of Xeric raid (twisted bow etc.), prayer scrolls, master clues, bigger clue & casket loot, Voidforged tier, Celestial weapons, 125–145 skilling unlocks |
+| v4 coin sinks | Player house (12 rooms), wishing well blessings, infinite guild investments |
+
+All balance numbers live in `data.js`, `data3.js` and `data4.js` — tweak away.
 
 *Fan-made project. Not affiliated with or endorsed by any game company.*

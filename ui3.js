@@ -227,7 +227,9 @@ function viewCombat() {
   } else if (area === 'gwd') {
     areaPanel = `<div class="panel"><h3>God Wars kill count</h3><div class="kc-grid">${Object.entries(GODS).map(([g, n]) => `<div class="kc"><span class="dot" style="background:${GOD_TINT[g]}"></span>${n}<b data-live="kc-${g}">${fmt(S.kc[g] || 0)}</b><small>/ ${GWD_KC}</small></div>`).join('')}</div>
       <p class="muted small">Kill a god's followers to build kill count. Entering a general's chamber costs ${GWD_KC} KC; you stay inside until you retreat or die. Kree'arra flies, so bring Ranged or Magic. Nex needs a Frozen key, made from the four key pieces the generals drop.</p></div>`;
-  } else if (area === 'minigames') {
+  } else if (area === 'raids') areaPanel = raidPanel();
+  else if (area === 'rift') areaPanel = riftPanel();
+  else if (area === 'minigames') {
     const B = S.barrows;
     areaPanel = `<div class="panel"><h3>⚱️ Barrows <small class="muted">· ${fmt(B.chests || 0)} chests opened</small></h3>
       <div class="chips">${BARROWS.map(b => `<span class="chip ${B.killed.includes(b.id) ? 'on' : ''}"><span style="${monFilter(MONSTER_BY_ID['barrows_' + b.id])}">${b.icon}</span> ${b.name.split(' ')[0]}${B.killed.includes(b.id) ? ' ✔' : ''}</span>`).join('')}</div>
@@ -253,7 +255,7 @@ function viewCombat() {
       </div>
       <div class="fight-btns"><button class="btn big ${C.fighting ? 'danger' : ''}" data-act="fight">${C.fighting ? 'Retreat' : 'Fight!'}</button><button class="btn" data-act="moninfo" data-id="${m.id}">📋 Drops</button></div>
     </div>
-    <div class="tabs">${AREAS.map(([k, n]) => `<button class="tab ${area === k ? 'on' : ''}" data-act="area" data-id="${k}">${n}</button>`).join('')}</div>
+    <div class="tabs scroll">${AREAS.map(([k, n]) => `<button class="tab ${area === k ? 'on' : ''}" data-act="area" data-id="${k}">${n}</button>`).join('')}</div>
     ${areaPanel}
     <div class="list">${mons}</div>
     <div class="panel"><h3>Combat style</h3><div class="chips">${styleChips}</div>
@@ -479,6 +481,8 @@ function viewMenu() {
     ['achievements', '🏆', 'Achievements', `${ad}/${ACHIEVEMENTS.length} · ${achPoints()} pts`],
     ['clog', '📒', 'Collection log', `${cs.got}/${cs.tot} · ${cs.pages} pages`],
     ['clue', '📜', 'Clue scroll', S.clues.active ? `<b class="badge">!</b> In progress` : `${Object.values(S.clues.done).reduce((a, b) => a + b, 0)} completed`],
+    ['ascension', '🌀', 'Ascension', `${S.asc.count} ascensions · ${fmt(S.asc.essence || 0)} essence`],
+    ['house', '🏠', 'Your house', `${Object.values(S.house || {}).reduce((a, b) => a + b, 0)} room levels · well & guild`],
     ['character', '🧍', 'Character', 'Gear, looks & loadouts'],
     ['ge', '📈', 'Grand Exchange', 'Buy, sell & flip'],
     ...(se ? [['season', se.icon, se.name + ' event', `${fmt(have(se.token))} ${ITEMS[se.token].name.toLowerCase()}s`]] : []),
@@ -641,7 +645,7 @@ function viewHelp() {
     <p>💀 <b>Slayer</b> tasks, ⚔️ <b>God Wars</b> kill count, ⚱️ <b>Barrows</b> runs and 👑 bosses all feed your 📒 <b>collection log</b>.</p>
     <p>📜 <b>Clue scrolls</b> drop everywhere: solve riddles, kill a monster or gather something, then open the casket.</p>
     <p>📈 The <b>Grand Exchange</b> drifts every 10 minutes: buy low, sell high.</p>
-    <p>🌀 <b>Ascend</b> at total level ${ASCEND_MIN_TOTAL} for Ancient Runes. Pets, logs, achievements and museum bonuses are kept.</p>
+    <p>🌀 <b>Ascend</b> (needs total level ${ascReqTotal()}, rising each time) for Ancient Runes, essence perks, ascension loot and higher level caps. The 🌌 Rift opens after your first ascension.</p><p>🏠 Spend coins on your <b>house</b>, the wishing well and guild investments.</p><p> Pets, logs, achievements and museum bonuses are kept.</p>
     <p class="muted">A fan-made idle game inspired by classic MMO skilling. Not affiliated with any game company.</p></div>`;
 }
 function openLampPicker() {
@@ -751,11 +755,11 @@ document.addEventListener('click', e => {
 });
 
 /* ---------- Boot ---------- */
-(function boot3() {
+function boot3() {
   boot();
   if (S.star) syncStarAction();
   ensureChallenges();
   setTimeout(checkAchievements, 1500);
   setInterval(() => { ensureChallenges(); checkAchievements(); }, 5000);
   renderFeed();
-})();
+}

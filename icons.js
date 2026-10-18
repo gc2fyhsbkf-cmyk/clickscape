@@ -128,6 +128,12 @@ const SHAPES = {
     <path d="M11 11 L21 11 M11 15 L20 15 M11 19 L18 19" stroke="#6a5a3a" stroke-width="1.2"/>`,
   scythe: t => `<path d="M10 30 L22 4" stroke="#000" stroke-width="3.6" stroke-linecap="round"/><path d="M10 30 L22 4" stroke="#5a3a1a" stroke-width="2" stroke-linecap="round"/>
     <path d="M21 5 C 12 2, 4 6, 2 14 C 8 8, 15 7, 20 9 Z" fill="${t}" ${K}/>`,
+  defender: t => `<path d="M8 6 L24 6 L26 14 C 26 22, 20 27, 16 29 C 12 27, 6 22, 6 14 Z" fill="${t}" ${K}/><path d="M11 10 L21 10 L22 15 C 22 20, 19 23, 16 24 C 13 23, 10 20, 10 15 Z" fill="${shade(t, .25)}"/>
+    <path d="M16 3 L16 10 M12 4 L14 9 M20 4 L18 9" stroke="${shade(t, .5)}" stroke-width="1.6" stroke-linecap="round"/>`,
+  blowpipe: t => `<path d="M4 24 L26 6" stroke="#000" stroke-width="5" stroke-linecap="round"/><path d="M4 24 L26 6" stroke="${t}" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="11" cy="18" r="3" fill="${shade(t, -.3)}" ${K}/><path d="M22 9 L29 3" stroke="#ddd" stroke-width="1.2"/>`,
+  wand: t => `<path d="M8 28 L22 8" stroke="#000" stroke-width="3.6" stroke-linecap="round"/><path d="M8 28 L22 8" stroke="${shade(t, -.2)}" stroke-width="2" stroke-linecap="round"/>
+    <path d="M23 3 L25 7 L29 7 L26 10 L27 14 L23 12 L19 14 L20 10 L17 7 L21 7 Z" fill="${t}" ${K}/>`,
 };
 function mixHex(a, b, t) {
   const p = h => { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
