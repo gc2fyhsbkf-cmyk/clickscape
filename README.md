@@ -31,7 +31,7 @@ Your save lives on the device. Use **More → Export save** to back it up or mov
 | 12 skills | Attack, Strength, Defence, Hitpoints, Mining, Smithing, Woodcutting, Firemaking, Fishing, Cooking, Farming, Archaeology — levels 1–99 using the classic XP curve |
 | Mining → Furnace → Anvil | Copper/tin → bronze, iron, steel (iron + 2 coal), mithril, adamant, rune bars, plus silver & gold. Each metal forges daggers, scimitars, pickaxes, hatchets, full helms, kiteshields, platelegs and platebodies at the right level |
 | Tools matter | Better pickaxes, hatchets, rods and mattocks multiply gathering speed |
-| Workers | Hire Dwarf Miners, Lumberjacks, Cooks… costs scale ×1.15 each (Cookie Clicker / AdVenture Capitalist style). They earn 50% XP — tapping earns full XP |
+| Workers | Hire Dwarf Miners, Lumberjacks, Cooks… costs scale ×1.17 each (Cookie Clicker / AdVenture Capitalist style). They earn 35% XP — tapping earns full XP |
 | Offline progress | Up to 8h (24h with the Feather Bed upgrade), with a "Welcome back" summary |
 | Combat | 13 monsters from Chicken to the Elder Wyrm boss, accuracy/max-hit formulas, combat styles, auto-eat, hitsplats, rare drops (dragon gear, Shadow whip) |
 | Farming | Real-time crop patches, buy more land, ashes as compost, auto-gardener upgrade |
@@ -52,6 +52,7 @@ Your save lives on the device. Use **More → Export save** to back it up or mov
 
 | v4 ascension | Rising total-level cost, essence perk shop (head start, veteran levels, keep workers/tools/gear, XP, luck, offline, damage), ascension loot (capes, ring, cape, crown, pet), level caps +3 per ascension (up to 129/150), the 🌌 Rift with ascension-gated monsters |
 | v4 content | Metal dragons, Cyclops defenders, KBD, Kalphite Queen, Giant Mole, Chaos Elemental, Sarachnis, Vorkath, Zulrah, Chambers of Xeric raid (twisted bow etc.), prayer scrolls, master clues, bigger clue & casket loot, Voidforged tier, Celestial weapons, 125–145 skilling unlocks |
+| v4.3 | Loot screen for boxes & clues, combat academy (paid auto-training), clue step swap/destroy, grouped bank, Ranged & Magic shop tabs, Halloween monsters/boosts/goodies, seasonal items kept through ascension |
 | v4 coin sinks | Player house (12 rooms), wishing well blessings, infinite guild investments |
 
 All balance numbers live in `data.js`, `data3.js` and `data4.js` — tweak away.

@@ -84,11 +84,24 @@ function toast(html, cls = '', ms = 3200) {
   if (cls === 'warn') SFX.play('error');
   renderFeed();
 }
+let feedSeq = 0;
 function renderFeed() {
   const box = $('#feed'); if (!box) return;
   const t = Date.now();
   const vis = MSGS.filter(m => t - m.t < m.ms).slice(0, 2);
-  box.innerHTML = vis.map(m => `<div class="feed-line ${m.cls}">${m.html}${m.n > 1 ? ` <b class="cnt">×${m.n}</b>` : ''}</div>`).join('');
+  // Keyed diff: only add/remove lines that changed, so the slide-in animation plays once per message.
+  for (const m of vis) m.k ||= ++feedSeq;
+  const want = new Set(vis.map(m => String(m.k)));
+  [...box.children].forEach(el => { if (!want.has(el.dataset.k)) el.remove(); });
+  vis.forEach((m, i) => {
+    let el = box.querySelector(`[data-k="${m.k}"]`);
+    const cnt = m.n > 1 ? ` <b class="cnt">×${m.n}</b>` : '';
+    if (!el) {
+      el = document.createElement('div'); el.dataset.k = m.k; el.className = `feed-line ${m.cls}`;
+      el.innerHTML = m.html + cnt; el.dataset.n = m.n;
+    } else if (el.dataset.n != m.n) { el.innerHTML = m.html + cnt; el.dataset.n = m.n; }
+    if (box.children[i] !== el) box.insertBefore(el, box.children[i] || null);
+  });
   box.classList.toggle('empty', !vis.length);
   clearTimeout(feedTimer);
   if (vis.length) feedTimer = setTimeout(renderFeed, 500);
@@ -150,7 +163,7 @@ function claimChallenge(kind, i) {
   if (!c || !c.done || c.claimed) return;
   c.claimed = true;
   const weekly = kind === 'weekly';
-  const coins = Math.round((weekly ? 400 : 40) * Math.max(50, totalLevel()));
+  const coins = Math.round((weekly ? 100 : 12) * Math.max(50, totalLevel()));
   gainCoins(coins);
   const got = ['🪙' + fmt(coins)];
   const items = weekly ? [['xp_lamp', 1], ['mystery_box', 2], ['clue_hard', 1]] : [[pickWeighted([['casket', 30], ['clue_easy', 25], ['clue_medium', 15], ['mystery_box', 15], ['xp_lamp', 15]]), 1]];

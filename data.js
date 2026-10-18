@@ -662,7 +662,7 @@ UPGRADES.push(
   { id: 'gardener', name: 'Hire a Gardener', icon: '👩‍🌾', desc: 'Ready crops are auto-harvested and replanted (if you have seeds)', cost: 40000, req: { skill: 'farming', lvl: 25 }, eff: { type: 'gardener' } },
   { id: 'greenhouse', name: 'Greenhouse', icon: '🏡', desc: 'Crops grow 25% faster', cost: 250000, req: { skill: 'farming', lvl: 50 }, eff: { type: 'grow', mult: 0.75 } },
   { id: 'gauntlets', name: 'Cooking Gauntlets', icon: '🧤', desc: 'Stop burning food 10 levels earlier', cost: 20000, req: { skill: 'cooking', lvl: 30 }, eff: { type: 'burn', val: 10 } },
-  { id: 'genie_lamp', name: "Genie's Favour", icon: '🪔', desc: 'Random events appear twice as often', cost: 50000, req: { events: 5 }, eff: { type: 'events', mult: 0.5 } },
+  { id: 'genie_lamp', name: "Genie's Favour", icon: '🪔', desc: 'Random events appear 40% more often', cost: 50000, req: { events: 5 }, eff: { type: 'events', mult: 0.7 } },
   // item-cost upgrades
   { id: 'gilded_pick', name: 'Gilded Pickaxe Handle', icon: '⛏️', desc: 'Mining ×2 (tap & workers)', cost: 50000, items: { gold_bar: 50 }, req: { skill: 'mining', lvl: 45 }, eff: { type: 'station', st: 'mine', mult: 2 } },
   { id: 'runic_anvil', name: 'Runic Anvil', icon: '🔨', desc: 'Anvil ×2 (tap & workers)', cost: 500000, items: { rune_bar: 25 }, req: { skill: 'smithing', lvl: 85 }, eff: { type: 'station', st: 'anvil', mult: 2 } },

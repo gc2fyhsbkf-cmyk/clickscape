@@ -335,7 +335,7 @@ function inputsText(a) { return Object.entries(a.inp || {}).map(([id, q]) => `${
 
 /* ---------- Workers ---------- */
 const plural = (w, n) => n === 1 ? w : /man$/.test(w) ? w.replace(/man$/, 'men') : w + 's';
-const hireCost = (st, k = 1) => { const b = STATIONS[st].wbase, n = S.workers[st] || 0; return Math.ceil(b * Math.pow(1.15, n) * (Math.pow(1.15, k) - 1) / 0.15); };
+const hireCost = (st, k = 1) => { const b = STATIONS[st].wbase, n = S.workers[st] || 0; return Math.ceil(b * Math.pow(1.17, n) * (Math.pow(1.17, k) - 1) / 0.17); };
 function hire(st, k) {
   if (k === 'max') { k = 0; while (hireCost(st, k + 1) <= S.coins && k < 500) k++; if (!k) k = 1; }
   const c = hireCost(st, k);
@@ -787,7 +787,7 @@ function openItem(id, q = 1) {
       give(randomSeed(), randInt(1, 3));
     } else if (id === 'mystery_box') {
       const r = pickWeighted([['coins', 30], ['gem', 25], ['bar', 15], ['seed', 20], ['casket', 10]]);
-      if (r === 'coins') coins += randInt(1000, 8000);
+      if (r === 'coins') coins += randInt(400, 3000);
       else if (r === 'gem') give(pickWeighted([['ruby', 60], ['diamond', 40]]), randInt(1, 3));
       else if (r === 'bar') give(pickWeighted([['mithril_bar', 50], ['adamant_bar', 35], ['rune_bar', 15]]), randInt(2, 6));
       else if (r === 'seed') give(pickWeighted([['ranarr_seed', 50], ['snapdragon_seed', 35], ['torstol_seed', 15]]), randInt(1, 3));
@@ -859,7 +859,7 @@ const EVENTS = [
   { icon: '🐸', name: 'Frog Prince' }, { icon: '🍺', name: 'Drunken Dwarf' }, { icon: '📦', name: 'Supply Drop' },
 ];
 let activeEvent = null;
-function scheduleEvent() { S.nextEvent = Date.now() + randInt(120, 300) * 1000 * M.events * (M.eventFreq || 1); }
+function scheduleEvent() { S.nextEvent = Date.now() + randInt(300, 600) * 1000 * M.events * (M.eventFreq || 1); }
 function spawnEvent() {
   if (activeEvent || document.hidden) return;
   const se = activeSeason();
@@ -887,7 +887,7 @@ function claimEvent(ev, b) {
     const got = gainXP(sk, xp);
     toast(`${ev.icon} The ${ev.name} hands you a lamp: <b>${fmt(got)} ${SKILLS[sk].name} XP</b>!`, 'pet', 5000);
   } else if (r === 'coins') {
-    const c = Math.floor(Math.max(60 * totalLevel(), S.coins * 0.12));
+    const c = Math.floor(Math.min(400 * totalLevel(), Math.max(25 * totalLevel(), S.coins * 0.04)));
     gainCoins(c); toast(`${ev.icon} The ${ev.name} drops a pouch of <b>🪙${fmt(c)}</b>!`, 'pet', 5000);
   } else { add('mystery_box', 1); toast(`${ev.icon} The ${ev.name} gives you a 🎁 <b>Mystery box</b>! Open it in your bank.`, 'pet', 5000); }
   buzz(30); SFX.play('rare');

@@ -50,7 +50,7 @@ function recalc4() {
 }
 
 /* ---------- Ascension ---------- */
-const ascReqTotal = () => Math.min(2000, 500 + 150 * (S?.asc?.count || 0));
+const ascReqTotal = () => Math.min(2400, 600 + 200 * (S?.asc?.count || 0));
 ascendGain = function () { return Math.floor(Math.sqrt(S.stats.xpRun / 40000) * (1 + 0.1 * (S.asc.count || 0))); };
 function ascRewards(n) {
   const r = [['ascension_cape_' + Math.min(n, 10), 1], ['xp_lamp', n + 1], ['mystery_box', n + 1]];
@@ -257,11 +257,11 @@ document.addEventListener('click', e => {
 });
 
 /* ---------- Boot additions ---------- */
-(function boot4() {
+function boot4() {
   boot3();
   S.house ||= {}; S.unlocks ||= {}; S.raids ||= {}; S.well ||= {}; S.guild ||= 0;
   S.asc.essence ??= S.asc.points || 0; S.asc.perks ||= {};
   applyCaps(); refreshLevels(); recalc();
   setInterval(() => recalc(), 5000);
   UI.force = true; render();
-})();
+}
