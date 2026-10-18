@@ -1,2 +1,51 @@
-# clickscape
-Idle style game RuneScape inspired
+# Clickscape — Idle Adventure
+
+A phone-first idle clicker inspired by classic MMO skilling. Tap to mine, smelt, smith, chop, burn, fish, cook, farm, dig and fight — then hire workers who keep going while the app is closed.
+
+Installs to your home screen as an app (PWA) and works offline.
+
+## Put it on GitHub Pages (free)
+
+1. Create a new **public** repository on GitHub, e.g. `clickscape`.
+2. Upload **every file in this folder** to the root of the repo (keep the `icons` folder as a folder).
+   - On a computer: drag the files into the repo page → **Commit changes**.
+   - On a phone: in the repo tap **Add file → Upload files** (unzip first in your Files app).
+3. Go to **Settings → Pages**. Under *Build and deployment* choose **Deploy from a branch**, branch **main**, folder **/ (root)**, then **Save**.
+4. After a minute your game is live at `https://YOUR-USERNAME.github.io/clickscape/`.
+
+## Install it on your phone
+
+- **iPhone (Safari):** open the link → Share button → **Add to Home Screen**.
+- **Android (Chrome):** open the link → menu ⋮ → **Install app** (or use the button in the game's *More* tab).
+
+## Updating the game
+
+Change any file, then open `sw.js` and bump `VERSION` (e.g. `clickscape-v2`) so installed phones fetch the new version.
+
+Your save lives on the device. Use **More → Export save** to back it up or move it to another phone.
+
+## What's in it
+
+| Feature | Details |
+|---|---|
+| 12 skills | Attack, Strength, Defence, Hitpoints, Mining, Smithing, Woodcutting, Firemaking, Fishing, Cooking, Farming, Archaeology — levels 1–99 using the classic XP curve |
+| Mining → Furnace → Anvil | Copper/tin → bronze, iron, steel (iron + 2 coal), mithril, adamant, rune bars, plus silver & gold. Each metal forges daggers, scimitars, pickaxes, hatchets, full helms, kiteshields, platelegs and platebodies at the right level |
+| Tools matter | Better pickaxes, hatchets, rods and mattocks multiply gathering speed |
+| Workers | Hire Dwarf Miners, Lumberjacks, Cooks… costs scale ×1.15 each (Cookie Clicker / AdVenture Capitalist style). They earn 50% XP — tapping earns full XP |
+| Offline progress | Up to 8h (24h with the Feather Bed upgrade), with a "Welcome back" summary |
+| Combat | 13 monsters from Chicken to the Elder Wyrm boss, accuracy/max-hit formulas, combat styles, auto-eat, hitsplats, rare drops (dragon gear, Shadow whip) |
+| Farming | Real-time crop patches, buy more land, ashes as compost, auto-gardener upgrade |
+| Archaeology | Dig sites with artifact sets — donate to the Museum for permanent buffs |
+| Upgrades | 100+ unlockable multipliers, some costing items (e.g. 50 gold bars for a Gilded Pickaxe Handle) |
+| Random events | A wandering 🧞 appears every few minutes — tap it for a ×7 frenzy, XP lamp, coins or a mystery box |
+| Pets | Ultra-rare skilling pets that boost their skill |
+| Ascension | Prestige reset for Ancient Runes (+5% production each) |
+| Slayer | 5 masters (Turael → Duradel), tasks, streak points, Slayer shop (helmet, superiors, boss tasks, autopilot), 20 Slayer monsters with level & kit requirements |
+| Prayer | Offer bones at the altar; prayer boosts up to Piety and Protect from Melee |
+| God Wars | Kill count, four generals, Bandos/Armadyl armour, godswords from shards + hilts, Nex and Torva |
+| Bosses | Dagannoth Rex, Kraken, Cerberus, Alchemical Hydra, Corporeal Beast, TzTok-Jad (fire cape), TzKal-Zuk (infernal cape) |
+| Gear | 10 equipment slots, special attacks, 2-handers, jewellery from the furnace, skillcapes & max cape, combine recipes (infernal tools, tentacle, spirit shields…) |
+
+All balance numbers live in `data.js` — tweak away.
+
+*Fan-made project. Not affiliated with or endorsed by any game company.*

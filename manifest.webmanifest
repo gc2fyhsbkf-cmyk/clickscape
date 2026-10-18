@@ -1,0 +1,16 @@
+{
+  "name": "Clickscape — Idle Adventure",
+  "short_name": "Clickscape",
+  "description": "Mine, smelt, smith, fish, farm, dig and fight in a classic-MMO-inspired idle clicker.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#15110c",
+  "theme_color": "#2b241a",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
