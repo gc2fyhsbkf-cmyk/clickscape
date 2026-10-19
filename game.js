@@ -335,7 +335,7 @@ function inputsText(a) { return Object.entries(a.inp || {}).map(([id, q]) => `${
 
 /* ---------- Workers ---------- */
 const plural = (w, n) => n === 1 ? w : /man$/.test(w) ? w.replace(/man$/, 'men') : w + 's';
-const hireCost = (st, k = 1) => { const b = STATIONS[st].wbase, n = S.workers[st] || 0; return Math.ceil(3 * b * Math.pow(1.2, n) * (Math.pow(1.2, k) - 1) / 0.2); };
+const hireCost = (st, k = 1) => { const b = STATIONS[st].wbase, n = S.workers[st] || 0; return Math.ceil(20 * b * Math.pow(1.3, n) * (Math.pow(1.3, k) - 1) / 0.3); };
 function hire(st, k) {
   if (k === 'max') { k = 0; while (hireCost(st, k + 1) <= S.coins && k < 500) k++; if (!k) k = 1; }
   const c = hireCost(st, k);

@@ -570,3 +570,7 @@ body.compact .splat, body.compact .floater { display: none; }
 .voy-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.08);margin-top:6px;overflow:hidden}
 .voy-fill{height:100%;background:linear-gradient(90deg,#2a6ab8,#5ac8ff);transition:width 1s linear}
 .voy-auto{gap:8px;margin-top:8px}.voy-auto small{flex:1}
+.worker-note span{opacity:.75}
+.msg-log{display:flex;flex-direction:column;gap:6px;max-height:70vh;overflow-y:auto}
+.log-row{font-size:13px;line-height:1.35;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.log-row.pet{color:#e0b8ff}.log-row.warn{color:#ffb38a}

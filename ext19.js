@@ -26,7 +26,7 @@ viewShop = (orig => function () { const h = orig(); return UI.shopCat === 'tools
 const OUTFIT_RATE = 1 / 6000;
 function rollOutfitPiece(set) {
   const missing = OUTFIT_PIECES.map(([p]) => `${set}_${p}`).filter(id => !have(id) && !Object.values(S.equip).includes(id) && !(S.costume?.[id] > 0) && !Object.values(S.cosmetic || {}).includes(id));
-  if (!missing.length) { const c = 250000 * (1 + S.asc.count); gainCoins(c); if (!OFF) toast(`👷 You already own the whole ${OUTFITS[set][2]} outfit, so the piece is traded for 🪙${fmt(c)}.`, 'rare'); return; }
+  if (!missing.length) { const c = 5000 * (1 + S.asc.count); gainCoins(c); if (!OFF) toast(`👷 You already own the whole ${OUTFITS[set][2]} outfit, so the piece is traded for 🪙${fmt(c)}.`, 'rare'); return; }
   const id = missing[randInt(0, missing.length - 1)];
   add(id, 1); logItem(id, 1);
   if (!OFF) { SFX.play('pet'); burst(); toast(`👷 <b>Outfit piece!</b> ${ITEMS[id].name} (${outfitCount(set)}/4)`, 'pet', 7000); }

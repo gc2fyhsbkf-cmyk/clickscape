@@ -305,4 +305,3 @@ function boot23() {
   S.stats.runStart ||= now();
   applyCaps(); refreshLevels(); recalc(); UI.force = true; render();
 }
-boot23();
