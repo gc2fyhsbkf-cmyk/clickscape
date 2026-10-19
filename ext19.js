@@ -6,7 +6,7 @@
    ========================================================= */
 
 /* ---------- 1) Tool finds: rare "whoop" moments (used by the tool-find roll in ext9) ---------- */
-const TOOL_FIND_RATE = 1 / 40000, TOOL_FIND_CD = 3 * 3600e3;
+const TOOL_FIND_RATE = 1 / 250000, TOOL_FIND_CD = 8 * 3600e3;
 function toolFound(st, next) {
   add(next.id, 1); logItem(next.id, 1); S.lifetime.toolFindT = now(); S.lifetime.toolFinds = (S.lifetime.toolFinds || 0) + 1;
   if (OFF) { OFFLOG.push(`🎉 You found a ${next.name} while skilling!`); return; }

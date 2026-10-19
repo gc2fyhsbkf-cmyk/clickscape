@@ -565,3 +565,8 @@ body.compact .splat, body.compact .floater { display: none; }
 .outfit-row { margin: -4px 0 8px; padding: 0 4px; font-size: .76rem; }
 .asc-tabs{position:sticky;top:0;z-index:5;background:var(--bg,#1a1610);padding:4px 0;margin-bottom:6px}
 .asc-tabs .ctab small{display:block;font-size:10px;opacity:.75}
+.voy-ship{padding:8px 10px;border:1px solid rgba(255,255,255,.08);border-radius:8px;margin:6px 0;background:rgba(0,0,0,.18)}
+.voy-ship.idle{opacity:.75}
+.voy-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.08);margin-top:6px;overflow:hidden}
+.voy-fill{height:100%;background:linear-gradient(90deg,#2a6ab8,#5ac8ff);transition:width 1s linear}
+.voy-auto{gap:8px;margin-top:8px}.voy-auto small{flex:1}

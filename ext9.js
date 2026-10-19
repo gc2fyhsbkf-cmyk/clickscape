@@ -106,7 +106,7 @@ doYield = (orig => function (st, a, n, xpScale) {
 function autoSellNow() {
   const L = S.autosell; if (!L) return;
   let total = 0;
-  for (const id in L) { if (!L[id] || S.locked[id]) continue; const n = have(id); if (n > 0) { const p = sellPrice(id); remove(id, n); total += p * n; } }
+  for (const id in L) { if (!L[id] || S.locked[id]) continue; const n = have(id); if (n > 0) { total += saleTake(id, n, sellPrice(id)); remove(id, n); } }
   if (total) gainCoins(total);
 }
 openItemModal = (orig => function (id, fromSlot) {

@@ -11,7 +11,8 @@ const TRIBUTE_POOL = [
   ['prayer_potion', 25, 1], ['super_restore', 20, 4], ['super_combat', 10, 5], ['blood_rune', 300, 3], ['nature_rune', 400, 0], ['mahogany_plank', 60, 2],
   ['red_chinchompa', 60, 2], ['black_chinchompa', 40, 5], ['green_dragonhide', 60, 0], ['teak_plank', 100, 0], ['law_rune', 300, 1],
 ].filter(([id]) => ITEMS[id]);
-const tributeCoins = (c = S.asc.count) => Math.round(1.5e6 * Math.pow(2.8, c));
+function tributeCoinsCalc(c) { return Math.round(1.5e6 * Math.pow(2.8, c)); }
+const tributeCoins = (c = S.asc.count) => tributeCoinsCalc(c);
 function rollTribute() {
   const c = S.asc.count || 0, pool = TRIBUTE_POOL.filter(t => t[2] <= c).sort(() => rnd() - 0.5).slice(0, 3);
   S.tribute = { items: pool.map(([id, q]) => [id, Math.round(q * (1 + 0.5 * c))]), offer: 1 };
@@ -89,7 +90,8 @@ viewAscension = (orig => function () {
 })(viewAscension);
 
 /* ================= TRANSCENDENCE COSTS COINS ================= */
-const transCost = () => Math.round(5e10 * Math.pow(4, S.trans?.count || 0));
+function transCostCalc() { return Math.round(5e10 * Math.pow(4, S.trans?.count || 0)); }
+const transCost = () => transCostCalc();
 transcend = (orig => function () {
   if ((S.asc?.count || 0) >= TRANS_REQ && S.coins < transCost()) { closeModal(); return toast(`✴️ Transcending needs an offering of 🪙${fmt(transCost())}.`, 'warn', 6000); }
   return orig();

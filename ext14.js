@@ -7,11 +7,11 @@
 
 /* ================= LEVEL CAPS THAT KEEP CLIMBING ================= */
 // Extend the classic XP curve (each +7 levels ≈ double XP) up to level 300.
-{ let pts = 0; for (let l = 1; l < 300; l++) { pts += Math.floor(l + 300 * Math.pow(2, l / 7)); if (l + 1 >= XP_TABLE.length) XP_TABLE[l + 1] = Math.floor(pts / 4); } }
-const LEVEL_HARD_CAP = 299;
+{ let pts = 0; for (let l = 1; l < 600; l++) { pts += Math.floor(l + 300 * Math.pow(2, l / 7)); if (l + 1 >= XP_TABLE.length) XP_TABLE[l + 1] = Math.floor(pts / 4); } }
+const LEVEL_HARD_CAP = 599;
 function capBonus() {
   const a = S?.asc?.count || 0, t = S?.trans?.count || 0, p = S?.trans?.perks?.caps || 0;
-  return Math.min(LEVEL_HARD_CAP - 120, 3 * a + 12 * t + 5 * p);
+  return Math.min(LEVEL_HARD_CAP - 120, 6 * a + 60 * t + 5 * p);
 }
 applyCaps();
 const capText = () => `${99 + capBonus()} / ${120 + capBonus()}`;

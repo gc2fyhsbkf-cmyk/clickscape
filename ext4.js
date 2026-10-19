@@ -50,7 +50,8 @@ function recalc4() {
 }
 
 /* ---------- Ascension ---------- */
-const ascReqTotal = () => { const n = SKILL_ORDER.length, c = S?.asc?.count || 0; const avgCap = SKILL_ORDER.reduce((a, k) => a + (MAX_LVL[k] || 99), 0) / n; return Math.round(n * Math.min(30 + 14 * c, 0.9 * avgCap) * (typeof ascReqMult === 'function' ? ascReqMult() : 1)); };
+function ascReqCalc() { const n = SKILL_ORDER.length, c = S?.asc?.count || 0; const avgCap = SKILL_ORDER.reduce((a, k) => a + (MAX_LVL[k] || 99), 0) / n; return Math.round(n * Math.min(30 + 14 * c, 0.9 * avgCap) * (typeof ascReqMult === 'function' ? ascReqMult() : 1)); }
+const ascReqTotal = () => ascReqCalc();
 ascendGain = function () { return Math.floor(Math.sqrt(S.stats.xpRun / 40000) * (1 + 0.1 * (S.asc.count || 0))); };
 function ascRewards(n) {
   const r = [['ascension_cape_' + Math.min(n, 10), 1], ['xp_lamp', n + 1], ['mystery_box', n + 1]];
@@ -104,7 +105,7 @@ function viewAscension() {
   return subHead('🌀 Ascension') + `<div class="panel asc"><div class="stats">
       <div>Ascensions</div><b>${n}</b><div>Ancient Runes (+5% production each)</div><b>${fmt(S.asc.points)}</b>
       <div>Essence to spend</div><b>${fmt(S.asc.essence || 0)}</b><div>Level caps</div><b>${99 + capBonus()} / ${120 + capBonus()}</b></div>
-      <p class="small">Ascending resets levels, items, coins, workers and upgrades. You keep pets, museum, logs, achievements, house, GE history and everything below. Each ascension needs a higher total level and raises level caps by 3 (Transcendence adds +12 more each time), and new Rift monsters unlock.</p>
+      <p class="small">Ascending resets levels, items, coins, workers and upgrades. You keep pets, museum, logs, achievements, house, GE history and everything below. Each ascension needs a higher total level and raises level caps by 6 (Transcendence adds +60 more each time), and new Rift monsters unlock.</p>
       <p>Next: total level <b class="y">${totalLevel()}/${req}</b> · gain <b class="y">+${g}</b> runes & essence</p>
       <h3>Rewards for ascension ${n + 1}</h3><div class="mini-grid">${ascRewards(n + 1).map(([id, q]) => `<div class="mini" data-act="info" data-id="${id}">${itemIcon(id)}<span>${q > 1 ? q : ''}</span></div>`).join('')}</div>
       <button class="btn big ${ok ? '' : 'disabled'}" data-act="ascend">${ok ? 'Ascend…' : `Total level ${totalLevel()}/${req}`}</button></div>

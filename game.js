@@ -199,7 +199,7 @@ function gainXP(skill, amt) {
   if (amt <= 0) return;
   amt *= M.xp * (COMBAT_SKILLS.includes(skill) ? M.cxp : SKILL_XP_RATE);
   amt *= skillXpMult(skill);
-  S.xp[skill] = Math.min(1e18, S.xp[skill] + amt);
+  S.xp[skill] = Math.min(1e300, S.xp[skill] + amt);
   S.stats.xpRun += amt; S.lifetime.xp += amt;
   const L = levelOf(S.xp[skill], MAX_LVL[skill]);
   if (L > LV[skill]) {
@@ -335,7 +335,7 @@ function inputsText(a) { return Object.entries(a.inp || {}).map(([id, q]) => `${
 
 /* ---------- Workers ---------- */
 const plural = (w, n) => n === 1 ? w : /man$/.test(w) ? w.replace(/man$/, 'men') : w + 's';
-const hireCost = (st, k = 1) => { const b = STATIONS[st].wbase, n = S.workers[st] || 0; return Math.ceil(b * Math.pow(1.17, n) * (Math.pow(1.17, k) - 1) / 0.17); };
+const hireCost = (st, k = 1) => { const b = STATIONS[st].wbase, n = S.workers[st] || 0; return Math.ceil(3 * b * Math.pow(1.2, n) * (Math.pow(1.2, k) - 1) / 0.2); };
 function hire(st, k) {
   if (k === 'max') { k = 0; while (hireCost(st, k + 1) <= S.coins && k < 500) k++; if (!k) k = 1; }
   const c = hireCost(st, k);
@@ -739,14 +739,15 @@ function tapMonster(x, y) {
 }
 
 /* ---------- Items: sell, equip, eat, open ---------- */
-const sellPrice = id => Math.max(1, Math.floor(ITEMS[id].value * M.sell));
+function sellPrice(id) { return Math.max(1, Math.floor(ITEMS[id].value * M.sell)); }
+function saleTake(id, q, p) { return p * q; } // overridden in ext21 (market depth)
 function sell(id, q) {
   if (S.locked[id]) return toast(`${ITEMS[id].name} is locked. Unlock it first.`, 'warn');
   q = Math.min(q, have(id));
   if (q <= 0) return;
-  remove(id, q);
-  gainCoins(sellPrice(id) * q);
-  toast(`Sold ${fmt(q)} × ${ITEMS[id].name} for 🪙${fmt(sellPrice(id) * q)}`); SFX.play('coin');
+  const got = saleTake(id, q, sellPrice(id)); remove(id, q);
+  gainCoins(got);
+  toast(`Sold ${fmt(q)} × ${ITEMS[id].name} for 🪙${fmt(got)}`); SFX.play('coin');
 }
 function reqOk(req) { return !req || Object.entries(req).every(([s, l]) => LV[s] >= l); }
 function reqText(req) { return Object.entries(req || {}).map(([s, l]) => `${SKILLS[s].name} ${l}`).join(', '); }
@@ -1313,7 +1314,7 @@ function quickSell(kind) {
     else if (kind === 'smith') ok = (it.cat === 'gear' || it.cat === 'tool') && it.tier && it.tier < 7;
     else if (kind === 'junk') ok = id === 'burnt_fish' || id === 'ashes';
     if (!ok || S.locked[id]) continue;
-    const n = have(id); total += sellPrice(id) * n; count += n; remove(id, n);
+    const n = have(id); total += saleTake(id, n, sellPrice(id)); count += n; remove(id, n);
   }
   if (!count) return toast('Nothing to sell.', 'warn');
   gainCoins(total);

@@ -124,4 +124,3 @@ document.addEventListener('click', e => {
   for (const id of Object.keys(ITEMS)) if (ITEMS[id].scroll && !GE_SET.has(id)) { GE_ITEMS.push(id); GE_SET.add(id); }
 })();
 function boot20() { boot19(); ensureTargets(); scrollMigration(); recalc(); UI.force = true; render(); }
-boot20();

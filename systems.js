@@ -438,8 +438,8 @@ const GE_ITEMS = Object.values(ITEMS).filter(i => !i.hidden && !i.untradeable &&
 const GE_SET = new Set(GE_ITEMS);
 const GE_STEP = 10 * 60000;
 const geF = id => S.ge.f[id] ?? 1;
-const geBuyPrice = id => Math.max(1, Math.ceil(ITEMS[id].value * geF(id) * 1.02));
-const geSellPrice = id => Math.max(1, Math.floor(sellPrice(id) * geF(id) * 0.98));
+function geBuyPrice(id) { return Math.max(1, Math.ceil(ITEMS[id].value * geF(id) * 1.02)); }
+function geSellPrice(id) { return Math.max(1, Math.floor(sellPrice(id) * geF(id) * 0.98)); }
 function geStep() {
   const G = S.ge;
   for (const id of GE_ITEMS) {
@@ -468,9 +468,9 @@ function geSell(id, q) {
   if (S.locked[id]) return toast(`${ITEMS[id].name} is locked. Unlock it first.`, 'warn');
   q = Math.min(q, have(id)); if (q <= 0 || !GE_SET.has(id)) return;
   const p = geSellPrice(id), base = sellPrice(id);
-  remove(id, q); gainCoins(p * q);
+  const got = saleTake(id, q, p); remove(id, q); gainCoins(got);
   if (p > base) S.lifetime.geProfit = (S.lifetime.geProfit || 0) + (p - base) * q;
-  toast(`📈 Sold ${fmt(q)} × ${ITEMS[id].name} on the GE for 🪙${fmt(p * q)}`); SFX.play('coin');
+  toast(`📈 Sold ${fmt(q)} × ${ITEMS[id].name} on the GE for 🪙${fmt(got)}`); SFX.play('coin');
 }
 function geBuy(id, q) {
   if (!GE_SET.has(id)) return;

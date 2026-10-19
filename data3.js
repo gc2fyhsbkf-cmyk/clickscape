@@ -482,12 +482,12 @@ METALS.push(PRIMAL);
 SHOP.tools.sort((a, b) => a.price - b.price);
 
 /* Post-99 content */
-item('eternal_logs', 'Eternal magic logs', 2400, { cat: 'log', kind: 'log', tint: '#4ad0e0' });
-act3({ id: 'w_eternal_logs', st: 'forest', name: 'Eternal magic tree', lvl: 100, xp: 380, hp: effort(380, 8), out: { eternal_logs: 1 }, icon: 'eternal_logs' });
-act3({ id: 'f_eternal_logs', st: 'fire', name: 'Burn eternal magic logs', lvl: 100, xp: 520, hp: 6, inp: { eternal_logs: 1 }, out: { ashes: 2 }, icon: 'eternal_logs' });
-act3({ id: 'fl_shafts_eternal_logs', st: 'fletch', name: 'Arrow shafts (Eternal magic logs)', lvl: 100, xp: 40, hp: 2, inp: { eternal_logs: 1 }, out: { arrow_shaft: 120 }, icon: 'arrow_shaft' });
+item('emagic_logs', 'Eternal magic logs', 2400, { cat: 'log', kind: 'log', tint: '#4ad0e0' });
+act3({ id: 'w_emagic_logs', st: 'forest', name: 'Eternal magic tree', lvl: 100, xp: 380, hp: effort(380, 8), out: { emagic_logs: 1 }, icon: 'emagic_logs' });
+act3({ id: 'f_emagic_logs', st: 'fire', name: 'Burn eternal magic logs', lvl: 100, xp: 520, hp: 6, inp: { emagic_logs: 1 }, out: { ashes: 2 }, icon: 'emagic_logs' });
+act3({ id: 'fl_shafts_emagic_logs', st: 'fletch', name: 'Arrow shafts (Eternal magic logs)', lvl: 100, xp: 40, hp: 2, inp: { emagic_logs: 1 }, out: { arrow_shaft: 120 }, icon: 'arrow_shaft' });
 gear('eternal_shortbow', 'Eternal shortbow', 'weapon', [0, 0, 0], { ranged: 75 }, { kind: 'shortbow', tint: '#4ad0e0', ratk: 90, rstr: 8, wclass: 'ranged', ammo: 'arrow', ammoCap: 7, spd: 0.85, twoHanded: true, value: 3000000 });
-act3({ id: 'fl_eternal_shortbow', st: 'fletch', name: 'Eternal shortbow', lvl: 105, xp: 250, hp: 9, inp: { eternal_logs: 1, bowstring: 1 }, out: { eternal_shortbow: 1 }, icon: 'eternal_shortbow' });
+act3({ id: 'fl_eternal_shortbow', st: 'fletch', name: 'Eternal shortbow', lvl: 105, xp: 250, hp: 9, inp: { emagic_logs: 1, bowstring: 1 }, out: { eternal_shortbow: 1 }, icon: 'eternal_shortbow' });
 item('raw_sailfish', 'Raw sailfish', 700, { cat: 'fish', kind: 'fish', tint: '#3a7ad8' });
 item('sailfish', 'Sailfish', 1300, { cat: 'food', kind: 'cookedfish', tint: '#3a7ad8', heal: 28 });
 act3({ id: 'fi_sailfish', st: 'fish', name: 'Deep sea (sailfish)', lvl: 100, xp: 190, hp: effort(190, 9), out: { raw_sailfish: 1 }, icon: 'raw_sailfish' });
