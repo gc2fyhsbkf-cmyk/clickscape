@@ -245,4 +245,3 @@ function boot15() {
   setDepthStats(); applyCaps(); refreshLevels(); recalc(); S.runStart ||= S.stats.started || now();
   UI.force = true; render();
 }
-boot15();
