@@ -16,7 +16,8 @@ function rollTribute() {
   const c = S.asc.count || 0, pool = TRIBUTE_POOL.filter(t => t[2] <= c).sort(() => rnd() - 0.5).slice(0, 3);
   S.tribute = { items: pool.map(([id, q]) => [id, Math.round(q * (1 + 0.5 * c))]), offer: 1 };
 }
-const tributeOk = () => S.tribute && S.coins >= tributeCoins() * (S.tribute.offer || 1) && S.tribute.items.every(([id, q]) => have(id) >= q);
+const tribHave = id => Math.max(0, have(id) - (S.bought?.[id] || 0));
+const tributeOk = () => S.tribute && S.coins >= tributeCoins() * (S.tribute.offer || 1) && S.tribute.items.every(([id, q]) => tribHave(id) >= q);
 const OFFERS = [[1, 0], [2, 0.2], [5, 0.5], [10, 1]];
 const offerBonus = () => (OFFERS.find(o => o[0] === (S.tribute?.offer || 1)) || OFFERS[0])[1];
 
@@ -61,7 +62,7 @@ ascend = (orig => function () {
   if (!S.tribute) rollTribute();
   if (totalLevel() >= ascReqTotal() && !tributeOk()) {
     const miss = []; const cc = tributeCoins() * (S.tribute.offer || 1); if (S.coins < cc) miss.push(`🪙${fmt(cc)}`);
-    S.tribute.items.forEach(([id, q]) => { if (have(id) < q) miss.push(`${fmt(q - have(id))} × ${ITEMS[id].name}`); });
+    S.tribute.items.forEach(([id, q]) => { if (tribHave(id) < q) miss.push(`${fmt(q - tribHave(id))} × ${ITEMS[id].name}`); });
     closeModal(); return toast(`🌀 The altar demands its tribute. Still missing: ${miss.join(', ')}`, 'warn', 7000);
   }
   const old = S, n = S.asc.count, done = bountiesDone(), trib = S.tribute, cost = tributeCoins() * (trib.offer || 1);
@@ -78,7 +79,8 @@ viewAscension = (orig => function () {
   const T = S.tribute, base = tributeCoins(), cc = base * (T.offer || 1);
   const trib = `<div class="panel"><h3>🌀 Ascension tribute <small class="muted">· required to ascend</small></h3>
     <div class="trib ${S.coins >= cc ? 'ok' : ''}">🪙 <b>${fmt(cc)}</b> coins <small>(have ${fmt(S.coins)})</small></div>
-    ${T.items.map(([id, q]) => `<div class="trib ${have(id) >= q ? 'ok' : ''}">${itemIcon(id)} <b>${fmt(q)} × ${ITEMS[id].name}</b> <small>(have ${fmt(have(id))})</small>${have(id) < q && GE_SET.has(id) ? ` <button class="btn small" data-act="ge-x" data-id="${id}" data-mode="buy">🛒</button>` : ''}</div>`).join('')}
+    ${T.items.map(([id, q]) => `<div class="trib ${tribHave(id) >= q ? 'ok' : ''}">${itemIcon(id)} <b>${fmt(q)} × ${ITEMS[id].name}</b> <small>(gathered ${fmt(tribHave(id))}${S.bought?.[id] ? ` · ${fmt(S.bought[id])} bought don't count` : ''})</small></div>`).join('')}
+    <p class="muted tiny">Tribute materials must be gathered, crafted or looted this run. Bought items don't count.</p>
     <h3>Offering</h3><p class="muted small">Pay a bigger coin tribute for more runes & essence from this ascension.</p>
     <div class="chips">${OFFERS.map(([m, b]) => `<button class="chip ${T.offer === m ? 'on' : ''}" data-act="offer" data-id="${m}">×${m} · 🪙${fmt(base * m)}${b ? ` · +${b * 100}%` : ''}</button>`).join('')}</div></div>
   <div class="panel"><h3>🎯 Run bounties <small class="muted">· +15% runes & essence each, +25% more for all three</small></h3>

@@ -28,7 +28,7 @@ function autoSupplyTick() {
     for (const [id, q] of Object.entries(a.inp)) {
       const need = q * want - have(id); if (need <= 0 || !GE_SET.has(id)) continue;
       const price = geBuyPrice(id), budget = Math.floor(S.coins * 0.25 / price), n = Math.min(need, budget);
-      if (n > 0) { S.coins -= n * price; add(id, n); S.lifetime.autoSpent = (S.lifetime.autoSpent || 0) + n * price; }
+      if (n > 0) { S.coins -= n * price; add(id, n); (S.bought ||= {})[id] = (S.bought[id] || 0) + n; S.lifetime.autoSpent = (S.lifetime.autoSpent || 0) + n * price; }
     }
   }
 }
@@ -99,4 +99,3 @@ function boot17() {
   if (!S.lifetime.kitGiven && !S.asc.count && !(S.trans?.count) && totalLevel() < 60) { giveKit(); S.lifetime.kitGiven = 1; }
   recalc(); UI.force = true; render();
 }
-boot17();

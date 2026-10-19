@@ -561,3 +561,7 @@ body.compact .splat, body.compact .floater { display: none; }
 .run-sum { margin: 8px 0; }
 .momentum { margin: -4px 0 8px; padding: 4px 8px; font-size: .76rem; border-radius: 4px; background: #2a2414; box-shadow: inset 3px 0 0 #ffd76a; }
 .autosup { padding: 8px 10px; }
+.whoop h2 { font-size: 1.4rem; } .whoop-icon { display: flex; justify-content: center; margin: 10px 0; } .whoop-icon .ico { width: 84px; height: 84px; filter: drop-shadow(0 0 12px #ffd76a); animation: pop .5s; }
+.outfit-row { margin: -4px 0 8px; padding: 0 4px; font-size: .76rem; }
+.asc-tabs{position:sticky;top:0;z-index:5;background:var(--bg,#1a1610);padding:4px 0;margin-bottom:6px}
+.asc-tabs .ctab small{display:block;font-size:10px;opacity:.75}

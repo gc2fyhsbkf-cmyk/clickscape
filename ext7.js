@@ -271,7 +271,7 @@ openItem = (orig => function (id, q = 1) {
       if (iid === 'coins') gainCoins(randInt(a, b)); else if (ITEMS[iid] && b > 0) add(iid, randInt(a, b));
     }
     if (crate) {
-      if (rnd() < 1 / 40 * M.luck) { const p = OUTFIT_PIECES[randInt(0, 3)][0]; const set = crate.also && rnd() < 0.4 ? crate.also : crate.outfit; const pid = `${set}_${p}`; add(pid, 1); logItem(pid, 1); }
+      if (rnd() < (typeof OUTFIT_RATE === 'number' ? OUTFIT_RATE : 1 / 40) * M.luck) { const set = crate.also && rnd() < 0.4 ? crate.also : crate.outfit; if (typeof rollOutfitPiece === 'function') rollOutfitPiece(set); else { const pid = `${set}_${OUTFIT_PIECES[randInt(0, 3)][0]}`; add(pid, 1); logItem(pid, 1); } }
       if (crate.pet && rnd() < 1 / 1500 * M.luck) givePet(crate.pet);
       if (id === 'zalcano_cache' && rnd() < 1 / 400) add('onyx', 1);
     }

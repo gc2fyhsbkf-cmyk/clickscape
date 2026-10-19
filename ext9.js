@@ -95,8 +95,8 @@ doYield = (orig => function (st, a, n, xpScale) {
     const cur = ITEMS[S.equip[slot]], sk = STATIONS[st].skill;
     const next = TOOL_LADDER[slot].find(t => t.mult > (cur?.mult || 0) && !have(t.id) && (!t.req || Object.entries(t.req).every(([s, l]) => (LV[s] || 0) >= l - 10)));
     if (next && !next.id.startsWith('dragon')) {
-      const rate = (1 / 3000) * M.luck;
-      if (rollCount(done, rate) > 0) { add(next.id, 1); logItem(next.id, 1); if (!OFF) { toast(`🎁 While ${STATIONS[st].verb.toLowerCase()}ing you find a <b>${next.name}</b>!`, 'pet', 6000); SFX.play('rare'); } }
+      const rate = (typeof TOOL_FIND_RATE === 'number' ? TOOL_FIND_RATE : 1 / 3000) * M.luck;
+      if (now() - (S.lifetime.toolFindT || 0) > (typeof TOOL_FIND_CD === 'number' ? TOOL_FIND_CD : 0) && rollCount(done, rate) > 0) { if (typeof toolFound === 'function') toolFound(st, next); else { add(next.id, 1); logItem(next.id, 1); } }
     }
   }
   return done;

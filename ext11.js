@@ -15,7 +15,7 @@ const RELICS = [
   [{ id: 'lucky', icon: '🍀', name: 'Lucky', desc: 'Rare drops ×1.5' }, { id: 'scholar', icon: '📚', name: 'Scholar', desc: 'All XP ×1.5' },
     { id: 'banker', icon: '💰', name: 'Banker', desc: 'Sell prices ×1.5' }, { id: 'weapon', icon: '⚔️', name: 'Weapon Master', desc: 'Damage ×1.4, accuracy ×1.2' }],
   [{ id: 'workforce', icon: '👷', name: 'Workforce', desc: 'Workers ×3 speed' }, { id: 'gloves', icon: '🧤', name: 'Golden Gloves', desc: 'Tap power ×5' },
-    { id: 'grit', icon: '💀', name: "Slayer's Grit", desc: 'Slayer XP ×3, Slayer points ×2' }, { id: 'fairy', icon: '🧚', name: "Fairy's Flight", desc: '+12h offline time this run' }],
+    { id: 'grit', icon: '💀', name: "Hunter's Resolve", desc: 'Slayer XP ×3, Slayer points ×2' }, { id: 'fairy', icon: '🧚', name: "Fairy's Flight", desc: '+12h offline time this run' }],
   [{ id: 'midas', icon: '🪙', name: 'Golden Touch', desc: 'All coins gained ×2' }, { id: 'avatar', icon: '🛡️', name: 'Avatar', desc: 'Combat XP ×3' },
     { id: 'overgrowth', icon: '🌳', name: 'Overgrowth', desc: 'All production ×2' }, { id: 'echo', icon: '🔊', name: 'Echo', desc: 'This ascension gives +50% runes & essence' }],
 ];
