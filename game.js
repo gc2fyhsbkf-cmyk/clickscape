@@ -199,7 +199,7 @@ function gainXP(skill, amt) {
   if (amt <= 0) return;
   amt *= M.xp * (COMBAT_SKILLS.includes(skill) ? M.cxp : SKILL_XP_RATE);
   amt *= skillXpMult(skill);
-  S.xp[skill] = Math.min(5e9, S.xp[skill] + amt);
+  S.xp[skill] = Math.min(1e18, S.xp[skill] + amt);
   S.stats.xpRun += amt; S.lifetime.xp += amt;
   const L = levelOf(S.xp[skill], MAX_LVL[skill]);
   if (L > LV[skill]) {

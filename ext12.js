@@ -37,5 +37,3 @@ viewSkill = (orig => function () {
   return orig().replace(/<div class="panel buybar">[\s\S]*?<\/div>/, m => (a?.inp && Object.entries(a.inp).some(([id, q]) => have(id) < q * 5)) ? m : '');
 })(viewSkill);
 VIEWS.skill = viewSkill;
-
-boot8();

@@ -1,8 +1,8 @@
 // Clickscape service worker — keeps the game playable offline.
 // Bump VERSION whenever you change any file so phones pick up the update.
-const VERSION = 'clickscape-v6.1';
-const FILES = ['./', 'index.html', 'style.css?v=6.1', 'data.js?v=6.1', 'data3.js?v=6.1', 'data4.js?v=6.1', 'icons.js?v=6.1', 'game.js?v=6.1', 'systems.js?v=6.1', 'ui3.js?v=6.1', 'ext4.js?v=6.1', 'ext5.js?v=6.1', 'ext6.js?v=6.1', 'ext7.js?v=6.1', 'ext8.js?v=6.1', 'ext9.js?v=6.1', 'ext10.js?v=6.1', 'ext11.js?v=6.1', 'ext12.js?v=6.1',
-  'manifest.webmanifest?v=6.1', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
+const VERSION = 'clickscape-v7.0';
+const FILES = ['./', 'index.html', 'style.css?v=7.0', 'data.js?v=7.0', 'data3.js?v=7.0', 'data4.js?v=7.0', 'icons.js?v=7.0', 'game.js?v=7.0', 'systems.js?v=7.0', 'ui3.js?v=7.0', 'ext4.js?v=7.0', 'ext5.js?v=7.0', 'ext6.js?v=7.0', 'ext7.js?v=7.0', 'ext8.js?v=7.0', 'ext9.js?v=7.0', 'ext10.js?v=7.0', 'ext11.js?v=7.0', 'ext12.js?v=7.0', 'ext13.js?v=7.0', 'ext14.js?v=7.0', 'ext15.js?v=7.0',
+  'manifest.webmanifest?v=7.0', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).catch(() => { })); self.skipWaiting(); });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k)))).then(() => self.clients.claim()));

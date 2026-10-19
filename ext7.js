@@ -122,7 +122,7 @@ const IMP_LOOT = {
 const OUTFITS = { prospector: ['mining', '#c8a83a', 'Prospector'], lumberjack: ['woodcutting', '#6a8a3a', 'Lumberjack'], angler: ['fishing', '#3a7aa8', 'Angler'], pyromancer: ['firemaking', '#d84a1a', 'Pyromancer'], carpenter: ['construction', '#a87a4a', 'Carpenter'] };
 const OUTFIT_PIECES = [['helm', 'head', 'hat'], ['top', 'body', 'robe'], ['legs', 'legs', 'robeskirt'], ['boots', 'feet', 'boots']];
 for (const [k, [sk, tint, name]] of Object.entries(OUTFITS)) OUTFIT_PIECES.forEach(([p, slot, kind]) => gear(`${k}_${p}`, `${name} ${p}`, slot, [0, 0, 0], null, { kind, tint, outfit: k, untradeable: true, value: 50000, rare: true }));
-const outfitCount = k => OUTFIT_PIECES.filter(([p]) => have(`${k}_${p}`) || Object.values(S.equip).includes(`${k}_${p}`) || Object.values(S.cosmetic || {}).includes(`${k}_${p}`)).length;
+function outfitCount(k) { return OUTFIT_PIECES.filter(([p]) => have(`${k}_${p}`) || Object.values(S.equip).includes(`${k}_${p}`) || Object.values(S.cosmetic || {}).includes(`${k}_${p}`)).length; }
 skillXpMult = (orig => function (skill) {
   let m = orig(skill);
   for (const [k, [sk]] of Object.entries(OUTFITS)) if (sk === skill) { const n = outfitCount(k); m *= 1 + 0.025 * n + (n === 4 ? 0.025 : 0); }
