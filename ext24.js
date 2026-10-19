@@ -6,7 +6,7 @@
 
 /* ================= WORKERS: dearer, capped, and weaker on a fresh account ================= */
 const workerCap = () => lifeAsc() < 1 && !tcount() && !apoCount() ? 10 : 25 + Math.floor(capAsc(S.asc?.count || 0) / 2) + 25 * tcount() + 100 * apoCount();
-const workerEff = () => Math.min(1, 0.35 + 0.13 * Math.min(5, lifeAsc() + 5 * tcount() + 5 * apoCount())) * (1 + 0.25 * tcount());
+const workerEff = () => Math.min(1, 0.35 + 0.22 * Math.min(3, lifeAsc() + 3 * tcount() + 3 * apoCount()));
 hire = (orig => function (st, k) {
   const cap = workerCap(), n = S.workers[st] || 0, room = cap - n;
   if (room <= 0) return toast(`👷 ${STATIONS[st].name} is full (${cap} workers). Ascend or Transcend to raise the cap.`, 'warn', 4000);
@@ -137,4 +137,3 @@ document.addEventListener('click', e => {
 }, true);
 viewSig = (orig => function () { return UI.view === 'msglog' ? orig() + MSG_LOG.length + (UI.logF || '') : UI.view === 'house' ? orig() + JSON.stringify(S.house?.shrines || {}) : orig(); })(viewSig);
 function boot24() { boot23(); S.house ||= {}; recalc(); UI.force = true; render(); }
-boot24();

@@ -10,7 +10,7 @@
 
 /* ---------- tunables (set by the pacing bot) ---------- */
 const SIG = { base: 6, exp: 0.3, powDiv: 1000, powE: { prod: 0.8, xp: 0.77, cxp: 0.8 }, essDiv: 5 };
-const TPOW = { prod: 3, xp: 2.25, cxp: 3 };   // per Transcendence
+const TPOW = { prod: 2.5, xp: 1.9, cxp: 2.5 };   // per Transcendence
 const APOW = { prod: 50, xp: 20, cxp: 50 };       // per Apotheosis
 const TRANS_T = { base: 4e4, growth: 40 };        // sigils needed to transcend
 const APO_T = { base: 25, growth: 5 };            // shards earned (this Apotheosis) needed
