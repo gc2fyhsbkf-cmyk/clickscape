@@ -221,21 +221,21 @@ academyTick = function (dt) {
   let melee = 0;
   for (const sk of ACAD_SKILLS) {
     const n = acadN(sk); if (!n) continue;
-    const x = n * acadBase(sk) * acadMult() * dt * (sk === 'prayer' ? ACAD_PRAY_XP : 1);
+    const x = n * acadBase(sk) * acadMult() * (1 + (S.trans?.perks?.charter || 0)) * dt * (sk === 'prayer' ? ACAD_PRAY_XP : 1);
     gainXP(sk, x); if (sk !== 'prayer' && sk !== 'slayer') melee += x;
   }
   if (melee) gainXP('hitpoints', melee / 3);
 };
 acadTotals = function () {
   let xp = 0, wage = 0; const pm = powM();
-  for (const sk of ACAD_SKILLS) { const n = acadN(sk); if (n) { xp += n * acadBase(sk) * acadMult() * (sk === 'prayer' ? ACAD_PRAY_XP : 1); wage += n * acadWage(sk) * pm * (sk === 'prayer' ? ACAD_PRAY_WAGE : 1); } }
+  for (const sk of ACAD_SKILLS) { const n = acadN(sk); if (n) { xp += n * acadBase(sk) * acadMult() * (1 + (S.trans?.perks?.charter || 0)) * (sk === 'prayer' ? ACAD_PRAY_XP : 1); wage += n * acadWage(sk) * pm * (sk === 'prayer' ? ACAD_PRAY_WAGE : 1); } }
   return { xp, wage };
 };
 viewAcademy = (orig => function () {
   let h = orig(); const pm = powM();
   for (const sk of ACAD_SKILLS) {
     const n = acadN(sk); if (!n) continue;
-    const xph = n * acadBase(sk) * acadMult() * 3600 * (sk === 'prayer' ? ACAD_PRAY_XP : 1), wh = n * acadWage(sk) * 3600 * pm * (sk === 'prayer' ? ACAD_PRAY_WAGE : 1);
+    const xph = n * acadBase(sk) * acadMult() * (1 + (S.trans?.perks?.charter || 0)) * 3600 * (sk === 'prayer' ? ACAD_PRAY_XP : 1), wh = n * acadWage(sk) * 3600 * pm * (sk === 'prayer' ? ACAD_PRAY_WAGE : 1);
     h = h.replace(new RegExp(`(<b>${SKILLS[sk].name} \\d+ · [^<]*</b><small>)\\+[^<]*?XP/h · 🪙[^<]*?/h wages`), `$1+${fmt(xph)} XP/h · 🪙${fmt(wh)}/h wages`);
   }
   return h.replace('</p>', ' <br><span class="small">🙏 Prayer can be “trained” with cash offerings to the Collection plate: it’s pricey and slow, because the gods much prefer bones at the altar (4× XP).</span></p>');
@@ -258,4 +258,3 @@ VIEWS.ascension = (orig => function () { return rebrand(orig()); })(viewAscensio
   ach('lvl_300', 'Beyond mortal', 'Reach level 300 in any skill', '🔱', g => SKILL_ORDER.some(s => g.LV[s] >= 300), 40);
 })();
 function boot22() { boot21(); applyCaps(); refreshLevels(); recalc(); UI.force = true; render(); }
-boot22();
