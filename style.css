@@ -590,3 +590,5 @@ body { padding: 0; min-height: 0; }
 .ch-line{fill:none;stroke:var(--orange,#ff981f);stroke-width:2;stroke-linejoin:round}
 .ch-dot{fill:var(--yellow,#ffd84a)}
 .ch-td{stroke:#c8a8ff;stroke-width:1;stroke-dasharray:3 3;opacity:.7}
+.hub-tile.locked, .locked-feature { opacity: .55; filter: grayscale(.6); }
+.hub-tile.locked { cursor: default; }

@@ -11,9 +11,9 @@
 /* ---------- tunables (set by the pacing bot) ---------- */
 const SIG = { base: 6, exp: 0.3, powDiv: 1000, powE: { prod: 0.8, xp: 0.77, cxp: 0.8 }, essDiv: 5 };
 const TPOW = { prod: 2, xp: 1.6, cxp: 2 };   // per Transcendence
-const APOW = { prod: 50, xp: 20, cxp: 50 };       // per Apotheosis
+const APOW = { prod: 8, xp: 5, cxp: 8 };       // per Apotheosis
 const TRANS_T = { base: 4e4, growth: 40 };        // sigils needed to transcend
-const APO_T = { base: 25, growth: 5 };            // shards earned (this Apotheosis) needed
+const APO_T = { base: 150, growth: 8 };            // shards earned (this Apotheosis) needed
 // neutralise v8 depth power: v9 power comes from sigils, Transcendences & Apotheoses
 for (const o of [PW, PWT, PWT2]) for (const k of ['prod', 'xp', 'cxp', 'money']) o[k] = 1;
 
@@ -21,7 +21,7 @@ for (const o of [PW, PWT, PWT2]) for (const k of ['prod', 'xp', 'cxp', 'money'])
 { let pts = 0; for (let l = 1; l < 2000; l++) { pts += Math.floor(l + 300 * Math.pow(2, l / 7)); if (l + 1 >= XP_TABLE.length) XP_TABLE[l + 1] = Math.floor(pts / 4); } }
 const apoCount = () => S?.apo?.count || 0;
 const capAsc = a => Math.round(90 * Math.log10(1 + a / 2.5)); // +13 for the first, ~+63 by 10, ~+145 by 100, ~+500 by a million
-const capTrans = t => t <= 10 ? 45 * t : Math.round(450 + 200 * Math.log10(t / 10));
+const capTrans = t => t <= 10 ? 30 * t : Math.round(300 + 150 * Math.log10(t / 10));
 capBonus = function () {
   const a = S?.asc?.count || 0, t = tcount(), p = S?.trans?.perks?.caps || 0;
   return Math.min(1999 - 120, capAsc(a) + capTrans(t) + 5 * p + 60 * apoCount() + 60 * (S?.apo?.perks?.heavens || 0));
@@ -42,7 +42,7 @@ function sigilGain() {
 const sigilPow = k => Math.pow(1 + sigils() / SIG.powDiv, SIG.powE[k]);
 function tierPow(k) {
   const ap = S.apo?.perks || {};
-  return sigilPow(k) * Math.pow(TPOW[k], tcount()) * Math.pow(APOW[k], apoCount()) * Math.pow(3, ap.omni || 0);
+  return sigilPow(k) * Math.pow(TPOW[k], tcount()) * Math.pow(APOW[k], apoCount()) * Math.pow(2, ap.omni || 0);
 }
 recalc4 = (orig => function () {
   orig(); if (!S?.asc) return;
@@ -164,7 +164,7 @@ VIEWS.transcend = (orig => function () { return rebrand(orig()); })(viewTranscen
 const apoTarget = () => Math.round(APO_T.base * Math.pow(APO_T.growth, apoCount()));
 const divGain = () => { const e = S.trans?.earned || 0, tg = apoTarget(); if (e < tg) return 0; return Math.floor(2 * Math.pow(e / tg, 0.4) * (1 + 0.3 * apoCount())); };
 const APO_PERKS = [
-  { id: 'omni', icon: '☀️', name: 'Omnipotence', max: 20, cost: l => 1 + l, desc: l => `All production & XP ×${fmt(Math.pow(3, l))}` },
+  { id: 'omni', icon: '☀️', name: 'Omnipotence', max: 20, cost: l => 1 + l, desc: l => `All production & XP ×${fmt(Math.pow(2, l))}` },
   { id: 'engine', icon: '⚙️', name: 'Eternal engine', max: 10, cost: l => 1 + l, desc: l => `Echo engine ×${fmt(Math.pow(10, l))}` },
   { id: 'sigil', icon: '🔆', name: 'Radiance', max: 10, cost: l => 1 + l, desc: l => `Sigil gains ×${fmt(Math.pow(3, l))}, shard gains ×${fmt(Math.pow(2, l))}` },
   { id: 'heavens', icon: '🌌', name: 'Open heavens', max: 5, cost: l => 2 + 2 * l, desc: l => `Level caps +${60 * l}, Transcendence target ÷${Math.pow(2, l)}` },

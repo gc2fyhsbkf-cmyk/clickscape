@@ -6,8 +6,8 @@
 
 /* ================= PANTHEON: pricier levels + endless perks ================= */
 for (const p of TRANS_PERKS) if (p.max > 1 && !p.endless && !p.scaled) { const c0 = p.cost; p.cost = l => Math.round(c0(l) * Math.pow(2, l)); p.scaled = true; }
-[{ id: 'dmight', icon: '🌟', name: 'Divine might', max: 9999, endless: true, keep: true, cost: l => Math.round(4 * Math.pow(1.6, l)), desc: l => `All production ×${fmtD(Math.pow(1.5, l))}` },
- { id: 'dinsight', icon: '📖', name: 'Divine insight', max: 9999, endless: true, keep: true, cost: l => Math.round(5 * Math.pow(1.6, l)), desc: l => `All XP ×${fmtD(Math.pow(1.3, l))}` },
+[{ id: 'dmight', icon: '🌟', name: 'Divine might', max: 9999, endless: true, cost: l => Math.round(4 * Math.pow(1.6, l)), desc: l => `All production ×${fmtD(Math.pow(1.5, l))}` },
+ { id: 'dinsight', icon: '📖', name: 'Divine insight', max: 9999, endless: true, cost: l => Math.round(5 * Math.pow(1.6, l)), desc: l => `All XP ×${fmtD(Math.pow(1.3, l))}` },
 ].forEach(p => { if (!TRANS_PERKS.some(x => x.id === p.id)) TRANS_PERKS.push(p); });
 recalc4 = (orig => function () {
   orig(); if (!S?.asc) return; const tp = S.trans?.perks || {};
@@ -147,4 +147,3 @@ viewSig = (orig => function () { return UI.view === 'expeditions' ? orig() + JSO
   ach('exp_10', 'Trailblazer', 'Complete 10 expeditions', '🧭', g => (g.S.lifetime.exped || 0) >= 10, 15);
 })();
 function boot30() { boot29(); expTick(); histSample(); UI.force = true; render(); }
-boot30();

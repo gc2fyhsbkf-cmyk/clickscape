@@ -102,7 +102,7 @@ viewStats2 = (orig => function () {
   const rows = [
     ['🔆 Sigils', `×${fmt(sigilPow('prod'))} production · ×${fmt(sigilPow('xp'))} XP`],
     ['✴️ Transcendence', `×${fmt(Math.pow(TPOW.prod, tcount()))} production (${tcount()} × ${TPOW.prod})`],
-    ['☀️ Apotheosis', `×${fmt(Math.pow(APOW.prod, apoCount()) * Math.pow(3, apoPerk('omni')))}`],
+    ['☀️ Apotheosis', `×${fmt(Math.pow(APOW.prod, apoCount()) * Math.pow(2, apoPerk('omni')))}`],
     ['👷 Worker efficiency', `${Math.round(workerEff() * 100)}% · cap ${workerCap()} per station`],
     ['⛩️ Shrines', `${SHRINES.filter(s => shrineLvl(s.id)).length}/${SHRINES.length} built`],
     ['🧑‍🌾 Farmhands', `${fhN()} (+${fhN() * 20}% crops)`],
