@@ -592,3 +592,7 @@ body { padding: 0; min-height: 0; }
 .ch-td{stroke:#c8a8ff;stroke-width:1;stroke-dasharray:3 3;opacity:.7}
 .hub-tile.locked, .locked-feature { opacity: .55; filter: grayscale(.6); }
 .hub-tile.locked { cursor: default; }
+.kill-loot{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 10px;min-height:26px;margin:4px 0;font-size:.82rem}
+.kill-loot .ico{width:20px;height:20px;display:inline-block;vertical-align:middle}
+.kill-loot span{display:inline-flex;align-items:center;gap:3px}
+.farm-guide .trib small{opacity:.85}

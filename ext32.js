@@ -51,4 +51,3 @@ viewShop = (orig => function () { const h = orig(); return unlocked('ge') ? h : 
 VIEWS.shop = (orig => function () { return rebrand(orig()); })(viewShop);
 
 function boot32() { boot31(); UI.force = true; render(); }
-boot32();
