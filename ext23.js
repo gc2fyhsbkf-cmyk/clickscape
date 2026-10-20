@@ -29,7 +29,7 @@ capBonus = function () {
 ascReqCalc = function () {
   const n = SKILL_ORDER.length, d = Math.min(30, (S.asc?.count || 0) + 10 * tcount());
   const avgCap = SKILL_ORDER.reduce((a, k) => a + (MAX_LVL[k] || 99), 0) / n, pan = S?.trans?.perks?.pantheon || 0;
-  return Math.round(n * Math.min((d ? 60 + 30 * d : 30) * (1 - 0.1 * pan), avgCap - 12 - 4 * pan));
+  return Math.round(n * Math.min((30 + 20 * d) * (1 - 0.1 * pan), avgCap - 12 - 4 * pan));
 };
 
 /* ================= SIGILS: the ascension currency ================= */

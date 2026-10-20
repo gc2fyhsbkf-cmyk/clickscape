@@ -33,4 +33,10 @@ ext29.js
 ext30.js
 ext31.js
 ext32.js
+ext33.js
+ext34.js
+ext35.js
+ext36.js
+ext37.js
+ext38.js
 ext28.js

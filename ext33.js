@@ -80,5 +80,60 @@ viewCombat = (orig => function () {
 })(viewCombat);
 VIEWS.combat = (orig => function () { return rebrand(orig()); })(viewCombat);
 
+
+/* ================= STARTER KIT: explained, and gear puts itself on when you can wear it ================= */
+giveKit = (orig => function () {
+  const k = orig();
+  S.kitGear = Object.keys(k.items).filter(id => ITEMS[id]?.slot && !['pickaxe', 'hatchet', 'rod', 'mattock'].includes(ITEMS[id].slot) && have(id));
+  return k;
+})(giveKit);
+ascend = (orig => function () {
+  const old = S, n = S.asc.count; orig(); if (S === old || S.asc.count === n || OFF) return;
+  const g = (S.kitGear || []).map(id => ITEMS[id].name);
+  setTimeout(() => toast(`🎒 Ascension starter kit added to your bank${g.length ? `: ${g.join(', ')}. Gear equips itself once your levels allow` : ''}.`, 'pet', 12000), 1200);
+})(ascend);
+transcend2 = (orig => function (auto) { const t0 = tcount(); orig(auto); if (tcount() > t0) { giveKit(); recalc(); } })(transcend2);
+const gearScore = id => { const it = ITEMS[id]; return it ? (it.atk || 0) + (it.str || 0) + (it.def || 0) + (it.ratk || 0) + (it.matk || 0) : 0; };
+let kitT = 0;
+tickCore = (orig => function (dt) {
+  orig(dt); kitT += dt; if (kitT < 5 || !S.kitGear?.length) return; kitT = 0;
+  S.kitGear = S.kitGear.filter(id => {
+    const it = ITEMS[id]; if (!have(id)) return false;
+    if (!reqOk(it.req)) return true;
+    const cur = S.equip[it.slot];
+    if (!cur || gearScore(cur) < gearScore(id)) { equip(id); if (!OFF) toast(`🎒 Equipped your starter ${it.name}.`); }
+    return false;
+  });
+})(tickCore);
+
+
+/* ================= STARTER KITS: bronze → iron → steel, never better ================= */
+const KIT_METAL = ['bronze', 'iron', 'steel'];
+giveKit = function () {
+  const n = Math.max(1, S.asc.count || 1), m = KIT_METAL[Math.min(n, 3) - 1];
+  const items = {}; ['scimitar', 'full_helm', 'platebody', 'platelegs', 'kiteshield'].forEach(k => { if (ITEMS[m + '_' + k]) items[m + '_' + k] = 1; });
+  const food = ['shrimp', 'trout', 'salmon'][Math.min(n, 3) - 1]; if (ITEMS[food]) items[food] = 20 * Math.min(n, 3);
+  for (const [id, q] of Object.entries(items)) add(id, q);
+  const coins = [500, 2000, 5000][Math.min(n, 3) - 1]; gainCoins(coins);
+  S.kitGear = Object.keys(items).filter(id => ITEMS[id]?.slot);
+  S.combat.food = food;
+  return { items, coins };
+};
+
+/* ================= KEPT GEAR CAN'T BE SOLD ================= */
+// gear carried into a new run (Armoury / Toolkit perks) is for using, not for cashing in
+ascend = (orig => function () {
+  const old = S, n = S.asc.count; orig(); if (S === old || S.asc.count === n) return;
+  S.carried = [...new Set(Object.values(S.equip).filter(Boolean))]; S.carried.forEach(id => { S.locked[id] = true; });
+})(ascend);
+const isCarried = id => (S.carried || []).includes(id);
+sell = (orig => function (id, q) { if (isCarried(id)) return toast(`${ITEMS[id].name} was carried over from your last run, so it can't be sold.`, 'warn'); return orig(id, q); })(sell);
+geSell = (orig => function (id, q) { if (isCarried(id)) return toast(`${ITEMS[id].name} was carried over from your last run, so it can't be sold.`, 'warn'); return orig(id, q); })(geSell);
+openItemModal = (orig => function (id, fromSlot) {
+  orig(id, fromSlot); if (!isCarried(id)) return; const box = $('#modal'); if (!box) return;
+  box.querySelectorAll('[data-act="sell"],[data-act="ge-sell"],[data-act="ge-x"][data-mode="sell"]').forEach(b => b.remove());
+  const p = box.querySelector('.item-modal p, p'); if (p) p.insertAdjacentHTML('afterend', '<p class="small muted">🔁 Carried over from your last run: can be worn, not sold.</p>');
+})(openItemModal);
+autoSellNow = (orig => function () { const L = S.autosell || {}; const saved = {}; for (const id of S.carried || []) if (L[id]) { saved[id] = 1; L[id] = false; } orig(); for (const id in saved) L[id] = true; })(autoSellNow);
+
 function boot33() { boot32(); tributeFix(); UI.force = true; render(); }
-boot33();
