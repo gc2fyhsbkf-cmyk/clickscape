@@ -153,6 +153,13 @@ function dollSVG() {
     const sc = shd.tint || '#888', sg = grad('shd', sc, isMetal(shd)), str = trimOf(shd);
     if (shd.kind === 'defender') out.push(`<g transform="translate(142 146) rotate(28)"><path d="M-4 0 L4 0 L3 -30 L0 -36 L-3 -30 Z" fill="${sg}" stroke="${OL}" stroke-width="1.6"/><path d="M-9 -2 L9 -2 L7 4 L-7 4 Z" fill="${dshade(sc, -.3)}" stroke="${OL}" stroke-width="1.4"/></g>`);
     else if (shd.kind === 'orb' || shd.kind === 'lantern') out.push(`<circle cx="146" cy="134" r="11" fill="${sc}" stroke="${OL}" stroke-width="2" opacity=".95"/><circle cx="142" cy="130" r="4" fill="#fff" opacity=".6"/><circle cx="146" cy="134" r="16" fill="${sc}" opacity=".2"/>`);
+    else if (shd.kind === 'dfs') {
+      out.push(`<path d="M126 104 Q148 97 170 104 Q172 141 148 168 Q124 141 126 104 Z" fill="${sg}" stroke="${OL}" stroke-width="2.4" stroke-linejoin="round"/>`);
+      out.push(`<path d="M131 108 Q148 102 165 108 Q166 139 148 161 Q130 139 131 108 Z" fill="${dshade(sc, -.4)}" stroke="${str || '#ff7a1a'}" stroke-width="2.4"/>`);
+      out.push(`<path d="M136 118 Q141 112 148 116 Q155 112 160 118 L157 122 Q162 127 158 135 Q153 132 148 140 Q143 132 138 135 Q134 127 139 122 Z" fill="#e8501a" stroke="${OL}" stroke-width="1.6" stroke-linejoin="round"/>`);
+      out.push(`<path d="M142 122 L144.5 124 M154 122 L151.5 124" stroke="#ffe08a" stroke-width="2.2" stroke-linecap="round"/><path d="M137 114 L133 108 M159 114 L163 108" stroke="#3a1a0a" stroke-width="2.4" stroke-linecap="round"/>`);
+      if (shd.dragonbane) out.push(`<path d="M148 168 Q140 174 144 182 Q148 176 152 182 Q156 174 148 168 Z" fill="#ffb02a" opacity=".9"/><circle cx="148" cy="135" r="28" fill="#ff7a1a" opacity=".12"/>`);
+    }
     else {
       out.push(`<path d="M126 104 Q148 98 170 104 Q172 140 148 166 Q124 140 126 104 Z" fill="${sg}" stroke="${OL}" stroke-width="2.4" stroke-linejoin="round"/>`);
       out.push(`<path d="M131 108 Q148 103 165 108 Q166 138 148 159 Q130 138 131 108 Z" fill="none" stroke="${str || dshade(sc, .45)}" stroke-width="${str ? 2.6 : 1.4}" opacity=".9"/>`);
