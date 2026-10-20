@@ -82,4 +82,4 @@ SHAPES.dfs = t => `<path d="M16 2.5 L27.5 6.5 C 27.5 17, 23.5 24.5, 16 30.5 C 8.
 for (const id of [...WARDS, 'dragonfire_shield', 'anti_dragon_shield']) delete _iconCache[id];
 
 function boot49() { boot48(); USES = null; UI.force = true; render(); }
-boot49();
+
