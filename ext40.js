@@ -173,4 +173,3 @@ document.addEventListener('click', e => {
   if (a === 'fan-set') { e.stopImmediatePropagation(); S.settings.fanfare = t.dataset.id; UI.force = true; render(); if (t.dataset.id === 'big') fanLegend({ kind: '✨ LEGENDARY DROP ✨', icon: '<span class="emo">🗡️</span>', name: 'Preview', sub: 'This is what a boss unique looks like' }); }
 }, true);
 function boot40() { boot39(); UI.force = true; render(); }
-boot40();

@@ -41,4 +41,9 @@ ext37.js
 ext38.js
 ext39.js
 ext40.js
+ext41.js
+ext42.js
+ext43.js
+ext44.js
+ext45.js
 ext28.js
