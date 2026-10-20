@@ -10,7 +10,7 @@
 
 /* ---------- tunables (set by the pacing bot) ---------- */
 const SIG = { base: 6, exp: 0.3, powDiv: 1000, powE: { prod: 0.8, xp: 0.77, cxp: 0.8 }, essDiv: 5 };
-const TPOW = { prod: 2.5, xp: 1.9, cxp: 2.5 };   // per Transcendence
+const TPOW = { prod: 2, xp: 1.6, cxp: 2 };   // per Transcendence
 const APOW = { prod: 50, xp: 20, cxp: 50 };       // per Apotheosis
 const TRANS_T = { base: 4e4, growth: 40 };        // sigils needed to transcend
 const APO_T = { base: 25, growth: 5 };            // shards earned (this Apotheosis) needed
@@ -21,7 +21,7 @@ for (const o of [PW, PWT, PWT2]) for (const k of ['prod', 'xp', 'cxp', 'money'])
 { let pts = 0; for (let l = 1; l < 2000; l++) { pts += Math.floor(l + 300 * Math.pow(2, l / 7)); if (l + 1 >= XP_TABLE.length) XP_TABLE[l + 1] = Math.floor(pts / 4); } }
 const apoCount = () => S?.apo?.count || 0;
 const capAsc = a => Math.round(90 * Math.log10(1 + a / 2.5)); // +13 for the first, ~+63 by 10, ~+145 by 100, ~+500 by a million
-const capTrans = t => t <= 10 ? 30 * t : Math.round(300 + 150 * Math.log10(t / 10));
+const capTrans = t => t <= 10 ? 45 * t : Math.round(450 + 200 * Math.log10(t / 10));
 capBonus = function () {
   const a = S?.asc?.count || 0, t = tcount(), p = S?.trans?.perks?.caps || 0;
   return Math.min(1999 - 120, capAsc(a) + capTrans(t) + 5 * p + 60 * apoCount() + 60 * (S?.apo?.perks?.heavens || 0));
@@ -66,7 +66,7 @@ ascend = (orig => function () {
 
 /* ================= ECHO ENGINE: passive sigils ================= */
 const engineLvl = () => S.trans?.perks?.engine || 0;
-const engineRate = () => { const l = engineLvl(); if (!l || !S.engine?.best) return 0; return S.engine.best * 0.02 * Math.pow(3, l - 1) * Math.pow(10, S.apo?.perks?.engine || 0); };
+function engineRate() { const l = engineLvl(); if (!l || !S.engine?.best) return 0; return S.engine.best * 0.02 * Math.pow(3, l - 1) * Math.pow(10, S.apo?.perks?.engine || 0); }
 let engAcc = 0, autoT = 0;
 tickCore = (orig => function (dt) {
   orig(dt);

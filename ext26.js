@@ -112,4 +112,3 @@ function boot26() {
   S.lifetime.omenFix = 1;
   recalc(); UI.force = true; render();
 }
-boot26();
