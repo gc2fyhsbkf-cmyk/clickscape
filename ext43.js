@@ -6,10 +6,10 @@
 
 const QUAL = [
   null,
-  { n: 'Fine',       c: '#5ad85a', k: 1.10, p: 0.06,  v: 1.6 },
-  { n: 'Superior',   c: '#4aa8ff', k: 1.25, p: 0.015,  v: 3 },
-  { n: 'Masterwork', c: '#c070ff', k: 1.50, p: 0.003, v: 8 },
-  { n: 'Legendary',  c: '#ffa020', k: 2.00, p: 0.0005, v: 25 },
+  { n: 'Fine',       c: '#5ad85a', k: 1.10, p: 0.02,  v: 1.6 },
+  { n: 'Superior',   c: '#4aa8ff', k: 1.25, p: 0.004,  v: 3 },
+  { n: 'Masterwork', c: '#c070ff', k: 1.50, p: 0.0006, v: 8 },
+  { n: 'Legendary',  c: '#ffa020', k: 2.00, p: 0.0001, v: 25 },
 ];
 const Q_STATS = ['atk', 'str', 'def', 'ratk', 'rstr', 'matk', 'mdmg', 'prayer'];
 const COMBAT_SLOTS = new Set(['head', 'body', 'legs', 'shield', 'weapon', 'feet', 'hands', 'cape', 'neck', 'ring']);

@@ -215,4 +215,4 @@ viewCharacter = (orig => function () {
 VIEWS.character = (orig => function () { return rebrand(orig()); })(viewCharacter);
 viewSig = (orig => function () { return UI.view === 'character' ? orig() + JSON.stringify(S.equip) + JSON.stringify(S.cosmetic || {}) : orig(); })(viewSig);
 function boot45() { boot44(); UI.force = true; render(); }
-boot45();
+

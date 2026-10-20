@@ -799,3 +799,35 @@ details.farm-guide[open] > summary { margin-bottom: 6px; }
 @keyframes dollIdle { 50% { transform: translateY(-2px) scaleY(1.008); } }
 @keyframes auraPulse { 50% { opacity: .6; transform: scale(1.04); } }
 .panel.char.v2 .char-stats { width: 100%; }
+/* v9.22 records & run card */
+.rec-list { display: flex; flex-direction: column; }
+.rec { display: grid; grid-template-columns: 26px 1fr; gap: 0 8px; padding: 7px 2px; border-top: 1px solid rgba(255,255,255,.06); align-items: center; }
+.rec:first-child { border-top: none; }
+.rec > span { grid-row: span 2; font-size: 20px; text-align: center; }
+.rec b { font-size: .78rem; color: var(--muted); font-weight: 400; }
+.rec em { font-style: normal; color: #ffe9a8; font-weight: 700; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.rec em small { color: var(--muted); font-weight: 400; } .rec em .ico { width: 22px; height: 22px; }
+.runcard img { width: 100%; border-radius: 8px; border: 2px solid #000; margin: 6px 0; }
+.equip-best { margin-bottom: 10px; }
+/* v9.23 station pages: pinned stage, compact workers, info chips */
+.sk-sticky { position: sticky; top: -8px; z-index: 6; margin: 0 -10px 6px; padding: 6px 10px 6px; background: linear-gradient(var(--bg) 85%, rgba(21,17,12,0)); }
+.sk-sticky .stage { display: grid; grid-template-columns: 68px 1fr; column-gap: 10px; align-items: center; text-align: left; padding: 8px 12px; min-height: 0; margin-bottom: 6px; }
+.sk-sticky .stage > *:not(.stage-bg) { grid-column: 2; }
+.sk-sticky .stage > .stage-icon { grid-column: 1; grid-row: 1 / span 4; justify-self: center; }
+.sk-sticky .stage-icon .ico, .sk-sticky .stage-icon .emo { width: 62px; height: 62px; font-size: 50px; line-height: 62px; }
+.sk-sticky .stage-name { font-size: 1rem; }
+.sk-sticky .stage .bar { margin: 4px 0; max-width: none; }
+.sk-sticky .stage-sub, .sk-sticky .stage-in { font-size: .74rem; }
+.worker-row.compact { padding: 6px 8px; gap: 8px; margin-bottom: 0; }
+.worker-row.compact .w-icon { font-size: 24px; }
+.worker-row.compact .w-main { flex: 1; min-width: 0; line-height: 1.2; } .worker-row.compact .w-main b { font-size: .86rem; } .worker-row.compact .w-main .muted { font-size: .72rem; }
+.worker-row.compact .w-btns { display: flex; gap: 3px; } .worker-row.compact .w-btns .btn { padding: 4px 7px; font-size: .78rem; line-height: 1.1; min-width: 0; }
+.worker-row.compact .w-btns .btn small { display: block; font-size: .62rem; }
+.sk-chips { display: flex; gap: 5px; overflow-x: auto; padding: 2px 0 6px; scrollbar-width: none; } .sk-chips::-webkit-scrollbar { display: none; }
+.skc { flex: none; font: inherit; font-size: .76rem; font-weight: 700; color: #cbbd9c; background: #2a231a; border: 1px solid #000; box-shadow: inset 0 0 0 1px #4e4434; border-radius: 14px; padding: 5px 10px; cursor: pointer; white-space: nowrap; }
+.skc.on { background: #4a3c24; color: #ffd76a; box-shadow: inset 0 0 0 1px #a08a40; }
+.skc.hot { box-shadow: inset 0 0 0 1px #ffb02a, 0 0 8px rgba(255,170,40,.6); color: #ffd76a; }
+.sk-drawer { display: none; } .sk-drawer.open { display: block; animation: drIn .18s ease; }
+.sk-drawer > .panel, .sk-drawer > div { margin-top: 0; }
+@keyframes drIn { from { opacity: 0; transform: translateY(-4px); } }
+.chips.one-row { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; } .chips.one-row::-webkit-scrollbar { display: none; } .chips.one-row .chip { flex: none; }
