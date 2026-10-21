@@ -177,4 +177,3 @@ function boot57() {
   const C = S.costume ||= {}; for (const id of Object.keys(S.bank)) if (ITEMS[id]?.costumeSet && have(id) > 0) { const q = have(id); C[id] = (C[id] || 0) + q; OUTFIT_MOVE = true; try { remove(id, q); } finally { OUTFIT_MOVE = false; } }
   recalc(); UI.force = true; render();
 }
-boot57();
