@@ -107,4 +107,3 @@ openMonsterInfo = (orig => function (id) {
 })(openMonsterInfo);
 
 function boot68() { boot67(); }
-boot68();
