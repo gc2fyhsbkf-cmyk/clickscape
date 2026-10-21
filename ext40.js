@@ -43,7 +43,7 @@ rareGet = (orig => function (id, q, why) {
   if (!tier) return orig(id, q, why);
   // do the normal bookkeeping without the plain toast
   const T = toast; toast = () => {}; try { orig(id, q, why); } finally { toast = T; }
-  const it = ITEMS[id], from = FAN_MON ? `from ${FAN_MON.name}` : why === 'drop' ? 'from a casket' : '', rate = fanRate(id);
+  const it = ITEMS[id], from = FAN_MON ? `from ${FAN_MON.name}` : why === 'drop' ? 'from a treasure chest' : '', rate = fanRate(id);
   const sub = [from, rate && `(${rate})`].filter(Boolean).join(' ');
   if (tier === 'legend' && S.settings?.fanfare !== 'small') fanLegend({ kind: FAN_MON?.raid ? '💜 RAID PURPLE 💜' : '✨ LEGENDARY DROP ✨', icon: itemIcon(id), name: `${q > 1 ? fmt(q) + ' × ' : ''}${it.name}`, sub, cls: FAN_MON?.raid ? 'purple' : '' });
   else fanBanner(itemIcon(id), `Rare drop: ${q > 1 ? fmt(q) + ' × ' : ''}${it.name}`, sub);

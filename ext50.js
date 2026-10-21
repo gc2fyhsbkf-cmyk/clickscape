@@ -17,8 +17,9 @@ function weaponFx(w) {
 }
 
 /* ---------- the hero, side-on, facing right ---------- */
+let HERO_LOOK = null; // optional slot → item override (skilling uses the skill outfit instead of combat gear)
 function heroSVG() {
-  const L = s => { const id = lookOf(s); return id ? ITEMS[id] : null; };
+  const L = s => { const id = HERO_LOOK ? HERO_LOOK(s) : lookOf(s); return id ? ITEMS[id] : null; };
   const head = L('head'), body = L('body'), legs = L('legs'), feet = L('feet'), hands = L('hands'), cape = L('cape'), wpn = L('weapon'), shd = L('shield');
   const skin = '#e6b58c', hair = '#5a3a1e', O = '#120d08';
   const bc = body?.tint || '#9a8a62', lc = legs?.tint || '#5a4632', fc = feet?.tint || '#3a2614', hc = hands?.tint || skin;
@@ -118,4 +119,4 @@ function attackAnim(dmg) {
 function hurtAnim(dmg) { if (UI.view !== 'combat') return; const hero = $('#bhero'); if (!hero) return; restart(hero, dmg > 0 ? 'hurt' : 'dodge'); }
 splat = (orig => function (who, dmg) { orig(who, dmg); try { if (who === 'm') attackAnim(dmg); else hurtAnim(dmg); } catch (e) {} })(splat);
 function boot50() { boot49(); UI.force = true; render(); }
-boot50();
+

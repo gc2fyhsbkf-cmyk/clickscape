@@ -33,7 +33,7 @@ gainXP = (orig => function (skill, amt) { if (COMBAT_XP_SKILLS.has(skill) && S?.
 
 /* ================= TROPHY ROOM ================= */
 // every boss's lifetime kill count earns a trophy: bronze 50, silver 250, gold 1000 → global damage
-const TROPHY = [[50, '🥉', 'Bronze', 0.005], [250, '🥈', 'Silver', 0.01], [1000, '🥇', 'Gold', 0.02]];
+const TROPHY = [[50, '🥉', 'Bronze', 0.0025], [250, '🥈', 'Silver', 0.005], [1000, '🥇', 'Gold', 0.01]];
 const trophyBosses = () => MONSTERS.filter(m => m.boss && !m.raid && !m.season && !m.transReq);
 const trophyOf = m => { let t = -1; TROPHY.forEach(([k], i) => { if (lifeKills(m.id) >= k) t = i; }); return t; };
 const RAID_TROPHY = [['cox', '🏛️', 'Chambers of Xeric'], ['tob', '🩸', 'Theatre of Blood'], ['toa', '⚱️', 'Tombs of Amascut'], ['caves', '🌋', 'Fight Caves'], ['inferno', '☄️', 'Inferno'], ['gauntlet', '🐇', 'The Gauntlet'], ['cgauntlet', '🩸', 'Corrupted Gauntlet']];
@@ -102,7 +102,7 @@ function viewCollections() {
       }).join('');
   } else if (tab === 'trophy') {
     const B = trophyBosses().sort((a, b) => a.lvl - b.lvl);
-    body = `<div class="panel small">Trophies come from your <b>lifetime</b> boss kills (🥉 50 · 🥈 250 · 🥇 1,000) and raid clears (🥉 10 · 🥈 50 · 🥇 250). Each one mounted adds permanent damage everywhere: bronze +0.5%, silver +1%, gold +2% (raids count double). Total: <b class="y">+${fmtD((M.trophy || 0) * 100)}% damage</b>.</div>
+    body = `<div class="panel small">Trophies come from your <b>lifetime</b> boss kills (🥉 50 · 🥈 250 · 🥇 1,000) and raid clears (🥉 10 · 🥈 50 · 🥇 250). Each one mounted adds permanent damage everywhere: bronze +0.25%, silver +0.5%, gold +1% (raids count double). Total: <b class="y">+${fmtD((M.trophy || 0) * 100)}% damage</b>.</div>
       <h3 class="sec-h">🏛️ Raids & runs</h3><div class="boss-grid">${RAID_TROPHY.map(([k, ic, n]) => { const t = raidTrophyOf(k); return `<div class="boss-tile trophy t${t}"><span class="bt-icon">${ic}</span><b>${n}</b><small>${t >= 0 ? TROPHY[t][1] + ' ' + TROPHY[t][2] : `${fmt(S.lifetime.raidMax?.[k] || 0)}/${RAID_T[0]}`}</small></div>`; }).join('')}</div>
       <h3 class="sec-h">👑 Bosses</h3><div class="boss-grid">${B.map(m => { const t = trophyOf(m), k = lifeKills(m.id), nx = TROPHY[t + 1]; return `<button class="boss-tile trophy t${t}" data-act="moninfo" data-id="${m.id}"><span class="bt-icon" style="${monFilter(m)}">${m.icon}</span><b>${m.name}</b><small>${t >= 0 ? TROPHY[t][1] + ' ' : ''}${fmt(k)}${nx ? `/${fmt(nx[0])}` : ' KC'}</small></button>`; }).join('')}</div>`;
   } else if (tab === 'pets') {

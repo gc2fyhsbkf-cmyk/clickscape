@@ -90,22 +90,38 @@ VIEWS.combat = (orig => function () { return rebrand(orig()); })(viewCombat);
 viewSig = (orig => function () { if (UI.view !== 'worldboss') return orig(); const W = wbState(); return 'wb' + Math.floor(1000 * W.dmg / Math.max(1, W.max)) + W.on + W.got.length + W.wk; })(viewSig);
 
 /* ================= SELL OUTCLASSED GEAR ================= */
-const ocScore = id => { const i = ITEMS[id] || {}; return (i.atk || 0) + (i.str || 0) + (i.def || 0) + (i.ratk || 0) + (i.rstr || 0) + (i.matk || 0) + (i.mdmg || 0); };
+// each piece is judged against the best piece you own for the SAME slot and the SAME combat style,
+// so a melee setup never sells your bows or staffs, and quality versions are compared too
+const ocStyle = it => it.slot === 'weapon' ? (it.wclass || (['longbow', 'shortbow', 'crossbow', 'blowpipe'].includes(it.kind) ? 'ranged' : ['staff', 'wand', 'trident'].includes(it.kind) ? 'magic' : 'melee')) : ((it.ratk || 0) + (it.rstr || 0) > (it.atk || 0) + (it.str || 0) && (it.ratk || 0) + (it.rstr || 0) >= (it.matk || 0) + (it.mdmg || 0)) ? 'ranged' : ((it.matk || 0) + (it.mdmg || 0) > (it.atk || 0) + (it.str || 0)) ? 'magic' : 'melee';
+const ocScore = (id, style) => { const i = ITEMS[id] || {}, d = (i.def || 0) * 0.6; return style === 'ranged' ? (i.ratk || 0) + (i.rstr || 0) * 2 + d : style === 'magic' ? (i.matk || 0) + (i.mdmg || 0) * 3 + d : (i.atk || 0) + (i.str || 0) * 1.2 + d; };
 function outclassed() {
   const keep = new Set([...Object.values(S.equip), ...(S.carried || []), ...Object.values(S.loadouts || {}).flatMap(l => Object.values(l?.equip || {}))]);
   (S.tribute?.items || []).forEach(([id]) => keep.add(id));
+  for (const c of Object.values(S.lifetime?.contracts || {})) (c?.items || []).forEach(([id, q, d]) => { if (d < q) keep.add(id); });
+  const owned = [...new Set([...Object.keys(S.bank).filter(id => have(id)), ...Object.values(S.equip).filter(Boolean)])].filter(id => ITEMS[id]?.slot);
+  const best = {};
+  for (const id of owned) { const it = ITEMS[id]; if (it.cosmetic || !reqOk(it.req)) continue; const k = it.slot + ':' + ocStyle(it) + (it.antifire ? ':af' : ''), sc = ocScore(id, ocStyle(it)); if (!best[k] || sc > best[k]) best[k] = sc; }
   return Object.keys(S.bank).filter(id => {
     const it = ITEMS[id]; if (!it?.slot || !have(id) || keep.has(id)) return false;
-    if (S.locked[id] || S.fav?.[id] || it.cosmetic || it.rare || it.untradeable || it.cat === 'tool' || it.outfit || it.perk || it.ammo) return false;
-    if (['pickaxe', 'hatchet', 'rod', 'ammo'].includes(it.slot)) return false;
-    const cur = S.equip[it.slot]; return !!cur && ocScore(id) < ocScore(cur);
+    if (S.locked[id] || S.fav?.[id] || it.cosmetic || (it.untradeable && !it.quality) || it.cat === 'tool' || it.outfit || it.perk) return false;
+    if (it.rare && !it.quality) return false;
+    if (['pickaxe', 'hatchet', 'rod', 'ammo', 'mattock'].includes(it.slot)) return false;
+    const k = it.slot + ':' + ocStyle(it) + (it.antifire ? ':af' : ''), sc = ocScore(id, ocStyle(it)); return best[k] !== undefined && sc < best[k] - 0.01;
   });
 }
 viewBank = (orig => function () {
   const L = outclassed(); if (!L.length) return orig();
   const v = L.reduce((a, id) => a + sellPrice(id) * have(id), 0);
-  return orig().replace('<div class="bank-grid" id="bankgrid">', `<div class="panel row-between small"><div>🧹 <b>${L.length} outclassed gear item${L.length > 1 ? 's' : ''}</b><br><small class="muted">Weaker than what you're wearing in that slot · about 🪙${fmt(v)}</small></div><button class="btn small" data-act="sell-outclassed">Sell</button></div><div class="bank-grid" id="bankgrid">`);
+  return orig().replace('<div class="bank-grid" id="bankgrid">', `<div class="panel row-between small"><div>🧹 <b>${L.length} outclassed gear item${L.length > 1 ? 's' : ''}</b><br><small class="muted">You own something better for that slot and style · about 🪙${fmt(v)}</small></div><button class="btn small" data-act="sell-outclassed">Review</button></div><div class="bank-grid" id="bankgrid">`);
 })(viewBank);
+function ocModal() {
+  const L = outclassed(), skip = UI.ocSkip ||= {}; if (!L.length) return closeModal();
+  const pick = L.filter(id => !skip[id]), n = pick.reduce((a, id) => a + have(id), 0), v = pick.reduce((a, id) => a + sellPrice(id) * have(id), 0);
+  const groups = ['melee', 'ranged', 'magic'].map(st => [st, L.filter(id => ocStyle(ITEMS[id]) === st)]).filter(([, g]) => g.length);
+  openModal(`<div class="item-modal oc-modal"><h2>🧹 Sell outclassed gear?</h2><p class="small muted">Each item below is weaker than something you already own for the same slot and combat style. Tap an item to keep it. Locked and favourite items are never sold.</p>
+    ${groups.map(([st, g]) => `<h3>${{ melee: '⚔️ Melee', ranged: '🎯 Ranged', magic: '🔮 Magic' }[st]}</h3><div class="oc-list">${g.map(id => `<button class="oc-row ${skip[id] ? 'kept' : ''}" data-act="oc-toggle" data-id="${id}">${itemIcon(id)}<span><b>${have(id) > 1 ? fmt(have(id)) + ' × ' : ''}${ITEMS[id].name}</b><small>${skip[id] ? 'Keeping' : '🪙' + fmt(sellPrice(id) * have(id))}</small></span><i>${skip[id] ? '🔒' : '✓'}</i></button>`).join('')}</div>`).join('')}
+    <div class="row-btns"><button class="btn big danger ${n ? '' : 'disabled'}" data-act="oc-confirm">Sell ${fmt(n)} item${n === 1 ? '' : 's'} · 🪙${fmt(v)}</button><button class="btn" data-act="close">Cancel</button></div></div>`);
+}
 VIEWS.bank = (orig => function () { return rebrand(orig()); })(viewBank);
 
 /* ---------- clicks & boot ---------- */
@@ -116,10 +132,12 @@ document.addEventListener('click', e => {
     if (W.on) { if (S.combat) S.combat.fighting = false; toast(`${wbBoss().icon} Your fighter heads off to face ${wbBoss().name}.`); }
     UI.force = true; render(); return;
   }
-  if (a === 'sell-outclassed') {
-    e.stopImmediatePropagation(); const L = outclassed(), c0 = S.coins; let n = 0;
+  if (a === 'sell-outclassed') { e.stopImmediatePropagation(); UI.ocSkip = {}; ocModal(); return; }
+  if (a === 'oc-toggle') { e.stopImmediatePropagation(); const sk = UI.ocSkip ||= {}; sk[t.dataset.id] = !sk[t.dataset.id]; ocModal(); return; }
+  if (a === 'oc-confirm') {
+    e.stopImmediatePropagation(); const L = outclassed().filter(id => !(UI.ocSkip || {})[id]), c0 = S.coins; let n = 0;
     const T = toast; toast = () => {}; try { L.forEach(id => { n += have(id); sell(id, have(id)); }); } finally { toast = T; }
-    toast(`🧹 Sold ${fmt(n)} outclassed gear item${n === 1 ? '' : 's'} for 🪙${fmt(S.coins - c0)}.`); UI.force = true; render(); return;
+    closeModal(); toast(`🧹 Sold ${fmt(n)} outclassed gear item${n === 1 ? '' : 's'} for 🪙${fmt(S.coins - c0)}.`); UI.force = true; render(); return;
   }
 }, true);
 function boot37() { boot36(); wbState(); UI.force = true; render(); }

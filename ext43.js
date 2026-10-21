@@ -6,10 +6,10 @@
 
 const QUAL = [
   null,
-  { n: 'Fine',       c: '#5ad85a', k: 1.10, p: 0.02,  v: 1.6 },
-  { n: 'Superior',   c: '#4aa8ff', k: 1.25, p: 0.004,  v: 3 },
-  { n: 'Masterwork', c: '#c070ff', k: 1.50, p: 0.0006, v: 8 },
-  { n: 'Legendary',  c: '#ffa020', k: 2.00, p: 0.0001, v: 25 },
+  { n: 'Fine',       c: '#5ad85a', k: 1.10, p: 0.006,  v: 1.6 },
+  { n: 'Superior',   c: '#4aa8ff', k: 1.25, p: 0.0012,  v: 3 },
+  { n: 'Masterwork', c: '#c070ff', k: 1.50, p: 0.0002, v: 8 },
+  { n: 'Legendary',  c: '#ffa020', k: 2.00, p: 0.00003, v: 25 },
 ];
 const Q_STATS = ['atk', 'str', 'def', 'ratk', 'rstr', 'matk', 'mdmg', 'prayer'];
 const COMBAT_SLOTS = new Set(['head', 'body', 'legs', 'shield', 'weapon', 'feet', 'hands', 'cape', 'neck', 'ring']);
@@ -36,7 +36,7 @@ load = (orig => function () { const r = orig.apply(this, arguments); try { ensur
 // rolling: better odds the further your level is above the item's, and with luck
 function qOdds(base, sk, boost = 1) {
   const it = ITEMS[base], req = Math.max(1, ...Object.values(it.req || {}), 1), over = Math.max(0, (LV[sk] || 1) - req);
-  const k = Math.min(2, 1 + over / 60) * Math.sqrt(M.luck || 1) * boost;
+  const k = Math.min(1.5, 1 + over / 120) * ((it.value || 0) < 500 ? 0.5 : 1) * Math.sqrt(M.luck || 1) * boost;
   return QUAL.map(q => q ? Math.min(0.5, q.p * k) : 0);
 }
 function rollQ(odds) { let r = Math.random(); for (let t = 4; t >= 1; t--) { if (r < odds[t]) return t; r -= odds[t]; } return 0; }

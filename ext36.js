@@ -47,7 +47,7 @@ viewSig = (orig => function () { return UI.view === 'upgrades' ? orig() + '|n' +
 // coming back after the limit ran out points at how to raise it
 simulateOffline = (orig => function () {
   const capped = (Date.now() - S.last) / 1000 > offlineHours() * 3600; orig();
-  if (capped) setTimeout(() => $('#modal .btn.big')?.insertAdjacentHTML('beforebegin', `<p class="small y">🌙 Your workers stopped after ${offlineHours()}h. Raise the limit with Night shift on the Upgrades page.</p>`), 0);
+  if (capped) setTimeout(() => !$('#modal .wb2') && $('#modal .btn.big')?.insertAdjacentHTML('beforebegin', `<p class="small y">🌙 Your workers stopped after ${offlineHours()}h. Raise the limit with Night shift on the Upgrades page.</p>`), 0);
 })(simulateOffline);
 
 /* ================= THE WARDROBE ================= */
@@ -62,8 +62,8 @@ const wardScore = () => wardOwned().reduce((a, id) => a + wardPts(id), 0);
 // clue sets: every cosmetic unique of a clue tier stored = +25% on all wardrobe bonuses
 const WARD_SETS = Object.entries(CLUE_UNIQUES).map(([t, L]) => [t, [...new Set(L)].filter(isWardrobe)]).filter(([, L]) => L.length);
 const wardSets = () => WARD_SETS.filter(([, L]) => L.every(id => (S.costume?.[id] || 0) > 0)).map(([t]) => t);
-// +1% XP and +2% rare drops per point
-const wardMult = () => { const p = wardScore(), k = 1 + 0.25 * wardSets().length; return { xp: 1 + 0.01 * p * k, luck: 1 + 0.02 * p * k }; };
+// +0.5% XP and +1% rare drops per point
+const wardMult = () => { const p = wardScore(), k = 1 + 0.2 * wardSets().length; return { xp: 1 + Math.min(0.6, 0.005 * p * k), luck: 1 + Math.min(1.2, 0.01 * p * k) }; };
 recalc4 = (orig => function () { orig(); if (!S?.costume) return; const W = wardMult(); M.xp *= W.xp; M.luck *= W.luck; })(recalc4);
 
 // wardrobe pieces survive AC, TD and Apotheosis (outfits & skillcapes in the room still reset with the bank)
@@ -84,7 +84,7 @@ viewCostume = (orig => function () {
   const panel = `<div class="panel ward"><h3>👑 Wardrobe <small class="muted">· ${got}/${WARD_IDS.length} pieces · ${p}/${wardTotal()} pts</small></h3>
     <small>Rare cosmetics stored here are <b>kept forever</b>, through every ascension, transcendence and apotheosis, and each one gives a permanent bonus (rarer pieces give more).</small>
     <div class="stats"><div>XP</div><b class="y">+${fmt((W.xp - 1) * 100)}%</b><div>Rare drops</div><b class="y">+${fmt((W.luck - 1) * 100)}%</b></div>
-    <small class="muted">Clue sets: complete every unique of a clue tier for +25% on all wardrobe bonuses.</small><div class="chips">${sets}</div></div>`;
+    <small class="muted">Clue sets: complete every unique of a clue tier for +20% on all wardrobe bonuses (wardrobe caps: +60% XP, +120% rare drops).</small><div class="chips">${sets}</div></div>`;
   return orig().replace('<div class="list">', panel + '<div class="list">');
 })(viewCostume);
 // tag wardrobe rows with their points
@@ -98,7 +98,7 @@ VIEWS.costume = (orig => function () { return rebrand(orig()); })(viewCostume);
 openItemModal = (orig => function (id, fromSlot) {
   orig(id, fromSlot); if (!isWardrobe(id)) return; const box = $('#modal .item-modal') || $('#modal'); if (!box) return;
   const stored = (S.costume?.[id] || 0) > 0;
-  box.insertAdjacentHTML('beforeend', `<p class="small ${stored ? 'muted' : 'y'}">👑 Wardrobe piece (${wardPts(id)} pt${wardPts(id) > 1 ? 's' : ''}): ${stored ? 'already in your costume room.' : `store it for a permanent +${wardPts(id)}% XP and +${2 * wardPts(id)}% rare drops, kept through every reset.`}</p>`);
+  box.insertAdjacentHTML('beforeend', `<p class="small ${stored ? 'muted' : 'y'}">👑 Wardrobe piece (${wardPts(id)} pt${wardPts(id) > 1 ? 's' : ''}): ${stored ? 'already in your costume room.' : `store it for a permanent +${fmtD(wardPts(id) * 0.5)}% XP and +${wardPts(id)}% rare drops, kept through every reset.`}</p>`);
 })(openItemModal);
 
 /* ---------- clicks & boot ---------- */

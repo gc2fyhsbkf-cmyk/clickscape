@@ -80,7 +80,8 @@ async function makeRunCard() {
   const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#2a2216'); bg.addColorStop(1, '#120e09'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
   g.strokeStyle = '#c8a040'; g.lineWidth = 10; g.strokeRect(24, 24, W - 48, H - 48); g.strokeStyle = '#5a4a2a'; g.lineWidth = 3; g.strokeRect(44, 44, W - 88, H - 88);
   g.textAlign = 'center'; g.fillStyle = '#ffd76a'; g.font = '900 78px Georgia, serif'; g.shadowColor = '#000'; g.shadowOffsetY = 4; g.fillText('CLICKSCAPE', W / 2, 140); g.shadowOffsetY = 0;
-  g.fillStyle = '#b0a083'; g.font = '32px system-ui, sans-serif'; g.fillText(`Total level ${fmt(totalLevel())} · Combat ${combatLevel()} · AC ${lifeAsc()} · TD ${tcount()}${apoCount() ? ' · Apotheosis ' + apoCount() : ''}`, W / 2, 196);
+  g.fillStyle = '#b0a083'; g.font = '32px system-ui, sans-serif'; const nm = $('#ptitle')?.textContent || ''; if (nm) { g.fillStyle = '#e3c8ff'; g.font = 'italic 34px Georgia, serif'; g.fillText(nm, W / 2, 182); } g.fillStyle = '#b0a083'; g.font = '32px system-ui, sans-serif';
+  g.fillText(`Total level ${fmt(totalLevel())} · Combat ${combatLevel()} · AC ${lifeAsc()} · TD ${tcount()}${apoCount() ? ' · Apotheosis ' + apoCount() : ''}`, W / 2, nm ? 226 : 196);
   // stage + character
   const sg = g.createRadialGradient(300, 560, 40, 300, 560, 380); sg.addColorStop(0, 'rgba(255,200,110,.35)'); sg.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = sg; g.fillRect(70, 240, 470, 720);
   try { const im = await svgImg(dollSVG()); g.drawImage(im, 70, 250, 460, 600); } catch (e) {}

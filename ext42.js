@@ -7,10 +7,10 @@
 
 const SPEC_NAMES = ['Bram', 'Elsa', 'Tobin', 'Mira', 'Hask', 'Wren', 'Odo', 'Fen', 'Ilsa', 'Corin', 'Maud', 'Pip', 'Rook', 'Tamsin', 'Garrick', 'Nell', 'Osric', 'Dara', 'Bryn', 'Ivo', 'Juno', 'Ketter', 'Lark', 'Agnes', 'Bertil', 'Cass', 'Dunstan', 'Edda', 'Fitch', 'Greta', 'Hob', 'Isolde', 'Jory', 'Kit', 'Leofric', 'Mab', 'Ned', 'Orla', 'Percival', 'Quill', 'Rosamund', 'Silas', 'Thea', 'Ulf', 'Vesna', 'Wat', 'Yara', 'Zeb'];
 const TRAITS = {
-  swift:     { icon: '⚡', name: 'Swift',     w: 5, desc: v => `+${fmt(v * 100)}% speed at this station`, val: l => 0.15 + 0.03 * l },
-  mentor:    { icon: '📘', name: 'Mentor',    w: 4, desc: v => `+${fmt(v * 100)}% XP in this skill`, val: l => 0.08 + 0.02 * l },
-  handson:   { icon: '👆', name: 'Hands-on',  w: 3, desc: v => `+${fmt(v * 100)}% tap power at this station`, val: l => 0.3 + 0.06 * l },
-  inspiring: { icon: '📣', name: 'Inspiring', w: 3, desc: v => `+${fmtD(v * 100)}% speed per worker here (up to +40%)`, val: l => 0.004 + 0.0008 * l },
+  swift:     { icon: '⚡', name: 'Swift',     w: 5, desc: v => `+${fmt(v * 100)}% speed at this station`, val: l => 0.10 + 0.02 * l },
+  mentor:    { icon: '📘', name: 'Mentor',    w: 4, desc: v => `+${fmt(v * 100)}% XP in this skill`, val: l => 0.05 + 0.015 * l },
+  handson:   { icon: '👆', name: 'Hands-on',  w: 3, desc: v => `+${fmt(v * 100)}% tap power at this station`, val: l => 0.2 + 0.04 * l },
+  inspiring: { icon: '📣', name: 'Inspiring', w: 3, desc: v => `+${fmtD(v * 100)}% speed per worker here (up to +30%)`, val: l => 0.003 + 0.0005 * l },
   lucky:     { icon: '🍀', name: 'Lucky',     w: 2, desc: v => `+${fmtD(v * 100)}% rare drops everywhere`, val: l => 0.02 + 0.005 * l },
   haggler:   { icon: '🪙', name: 'Haggler',   w: 2, desc: v => `+${fmtD(v * 100)}% sell prices`, val: l => 0.02 + 0.005 * l },
   nightowl:  { icon: '🦉', name: 'Night owl', w: 1, desc: v => `+${fmtD(v)}h offline limit`, val: l => 0.25 + 0.05 * l },
@@ -18,7 +18,7 @@ const TRAITS = {
 const SPEC_MAX = 3;
 const specs = st => (S.lifetime.spec ||= {})[st] ||= [];
 const specLvl = sp => Math.min(10, 1 + Math.floor(Math.sqrt((sp.xp || 0) / 1200)));
-const specVal = sp => TRAITS[sp.tr].val(specLvl(sp)) * (sp.fore ? 2 : 1);
+const specVal = sp => TRAITS[sp.tr].val(specLvl(sp)) * (sp.fore ? 1.5 : 1);
 const specActive = st => (S.workers?.[st] || 0) > 0;          // they work alongside your workers
 const specTitle = sp => `${sp.n} the ${TRAITS[sp.tr].name}`;
 function rollSpec(st) {
@@ -49,12 +49,14 @@ recalc4 = (orig => function () {
   orig(); if (!S?.lifetime?.spec) return;
   for (const st in S.lifetime.spec) {
     if (!specActive(st) || M.rate[st] === undefined) continue;
+    const r0 = M.rate[st];
     for (const sp of S.lifetime.spec[st]) {
       const v = specVal(sp);
       if (sp.tr === 'swift') M.rate[st] *= 1 + v;
       else if (sp.tr === 'handson' && M.tap?.[st] !== undefined) M.tap[st] *= 1 + v;
-      else if (sp.tr === 'inspiring') M.rate[st] *= 1 + Math.min(0.4, v * (S.workers[st] || 0));
+      else if (sp.tr === 'inspiring') M.rate[st] *= 1 + Math.min(0.3, v * (S.workers[st] || 0));
     }
+    if (r0 > 0) M.rate[st] = Math.min(M.rate[st], r0 * 1.6); // specialists add at most +60% speed per station
   }
   M.luck *= 1 + Math.min(0.3, specSum('lucky'));
   M.sell *= 1 + Math.min(0.2, specSum('haggler'));
@@ -96,7 +98,7 @@ function specPanel(st) {
   return `<div class="panel spec-panel"><h3>⭐ Specialists <small class="muted">· ${L.length}/${SPEC_MAX} · kept forever</small></h3>
     ${rows || '<p class="small muted">Every worker you hire has a small chance to be a <b>specialist</b> with a trait (Swift, Mentor, Lucky…). They level up while this station works.</p>'}
     ${L.length && !on ? '<p class="small cb-red">Hire at least one worker here to put your specialists back to work.</p>' : ''}
-    ${L.length ? '<p class="tiny muted">At level 10, promote one to <b>Foreman</b> to double their trait.</p>' : ''}</div>`;
+    ${L.length ? '<p class="tiny muted">At level 10, promote one to <b>Foreman</b> for +50% on their trait.</p>' : ''}</div>`;
 }
 viewSkill = (orig => function () {
   const h = orig(), st = UI.curStation; if (!st || !STATIONS[st] || UI.skill === 'farming' || UI.skill === 'sailing' || COMBAT_SKILLS.includes(UI.skill)) return h;
