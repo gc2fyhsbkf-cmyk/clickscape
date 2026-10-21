@@ -1110,3 +1110,29 @@ button.ai-row { cursor: pointer; }
 .item-modal details.im-acc > summary::after { content: '▸'; margin-left: 8px; color: #a89878; transition: transform .15s; }
 .item-modal details.im-acc[open] > summary::after { transform: rotate(90deg); }
 .item-modal details.im-acc > :not(summary) { margin: 0 10px 8px; }
+/* v9.50 */
+.act-row { padding-right: 38px !important; }
+.act-row .ar-info { top: 50%; transform: translateY(-50%); right: 7px; }
+.panel.kstreak.on { border-color: #ff6a30; box-shadow: inset 0 0 0 1px #8a3010, 0 0 12px rgba(255,100,40,.35); }
+.panel.kstreak .r { color: #ff8a6a; }
+.streak-chest { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.streak-chest > span { position: relative; display: inline-flex; align-items: center; }
+.streak-chest .ico { width: 28px; height: 28px; } .streak-chest > span small { position: absolute; right: -4px; bottom: -4px; font-size: 10px; color: #ffd76a; text-shadow: 0 1px 2px #000; }
+.streak-chest .btn { margin-left: auto; }
+/* v9.51 */
+.bag-line { font-size: 12px; text-align: center; margin: 2px 0 6px; color: #c8b890; } .bag-line .ico { width: 18px; height: 18px; vertical-align: middle; } .bag-line .r { color: #ff8a6a; }
+.xp-fall { color: #ff9a6a; font-weight: 700; font-size: 10px; }
+/* v9.52 */
+.fish-mode { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; } .fish-mode .btn { margin-left: auto; }
+.ar-loot .locked-fish { opacity: .35; filter: grayscale(1); }
+.panel.meals.hungry { border-color: #ff5a3a; } .panel.meals .r { color: #ff8a6a; }
+/* v9.52 estate & cosmetic skins */
+.skinchip-royal { --msc: #b070ff; } .skinchip-obsidian { --msc: #ff3a20; } .skinchip-aurora { --msc: #40e8a0; } .skinchip-sakura { --msc: #ff9ac8; } .skinchip-frost { --msc: #a0e0ff; }
+body.skin-royal .stage { border-color: #c8a040; box-shadow: inset 0 0 0 1px #6a2a9a, inset 0 0 34px rgba(150,60,220,.25), 0 0 16px rgba(176,112,255,.55); }
+body.skin-obsidian .stage { border-color: #1a1010; box-shadow: inset 0 0 0 2px #ff3a20, inset 0 0 36px rgba(0,0,0,.7), 0 0 16px rgba(255,58,32,.5); }
+body.skin-aurora .stage { border-color: #40e8a0; box-shadow: inset 0 0 0 1px #2a8aa8, inset 0 0 34px rgba(64,232,160,.2), 0 0 18px rgba(64,200,232,.55); animation: auroraGlow 6s ease-in-out infinite; }
+@keyframes auroraGlow { 50% { box-shadow: inset 0 0 0 1px #7a4ad8, inset 0 0 34px rgba(160,90,255,.22), 0 0 18px rgba(160,90,255,.55); border-color: #a070ff; } }
+body.skin-sakura .stage { border-color: #ff9ac8; box-shadow: inset 0 0 0 1px #a04a7a, inset 0 0 34px rgba(255,154,200,.18), 0 0 14px rgba(255,154,200,.5); }
+body.skin-frost .stage { border-color: #c8f0ff; box-shadow: inset 0 0 0 1px #4a8ab8, inset 0 0 34px rgba(160,224,255,.22), 0 0 16px rgba(160,224,255,.6); }
+body.skin-royal .stage::after, body.skin-aurora .stage::after, body.skin-frost .stage::after { content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.12) 50%, transparent 65%); background-size: 250% 100%; animation: skinShine 5s linear infinite; }
+.cos-shop .ms-track { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin: 6px 0 8px; }

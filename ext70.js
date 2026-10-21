@@ -69,4 +69,3 @@ function tidyItemModal() {
 openItemModal = (orig => function () { const r = orig.apply(this, arguments); try { tidyItemModal(); } catch (e) { console.warn(e); } return r; })(openItemModal);
 
 function boot70() { boot69(); UI.force = true; render(); }
-boot70();

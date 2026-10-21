@@ -72,7 +72,7 @@ document.addEventListener('change', e => { const t = e.target.closest?.('[data-a
 // the existing milestones (×1.1 production & XP each) now also unlock a station skin, with a fanfare
 const SKIN_NAMES = [['bronze', 'Bronze'], ['iron', 'Iron'], ['silver', 'Silver'], ['gold', 'Gold'], ['crystal', 'Crystal'], ['void', 'Void'], ['celestial', 'Celestial'], ['primordial', 'Primordial'], ['primordial', 'Primordial II'], ['primordial', 'Primordial III'], ['primordial', 'Primordial IV'], ['primordial', 'Primordial V']];
 const skinsGot = () => SKIN_NAMES.slice(0, Math.min(8, msReached()));
-const skinNow = () => { const ok = skinsGot().map(x => x[0]); if (!ok.length) return null; const pick = S.lifetime.skin; if (pick === 'none') return null; return ok.includes(pick) ? pick : ok[ok.length - 1]; };
+const skinNow = () => { const ok = skinsGot().map(x => x[0]).concat(S.lifetime.skinsBought || []); if (!ok.length) return null; const pick = S.lifetime.skin; if (pick === 'none') return null; return ok.includes(pick) ? pick : ok[ok.length - 1]; };
 function applySkin() { const s = skinNow(); document.body.className = document.body.className.replace(/\bskin-\w+\b/g, '').trim() + (s ? ' skin-' + s : ''); }
 function msPanel() {
   const r = msReached(), next = ASC_MS[r], cur = skinNow();

@@ -8,7 +8,7 @@
 // every worker earns a wage; it grows with the square of a station's crew, so a few deep stations
 // cost less than hiring everything everywhere. Small crews cost next to nothing.
 // If you can't pay, workers slow to half speed (nothing is lost).
-const wageScale = () => 0.15 * Math.pow(3, Math.min(10, lifeAsc())) * Math.pow(2, tcount());
+const wageScale = () => Math.max(0.15 * Math.pow(3, Math.min(10, lifeAsc())) * Math.pow(2, tcount()), (typeof WAGE_INC_SCALE !== 'undefined' ? WAGE_INC_SCALE : 0)); // v9.51: never below ~1% of what your stations produce
 const extraOf = st => Math.max(0, Math.min(S.workers?.[st] || 0, workerCap()));
 const wageOf = st => { const x = extraOf(st); return x ? x * x * (STATIONS[st]?.wbase || 20) * wageScale() : 0; };   // coins per hour
 const wagesTotal = () => STATION_ORDER.concat(Object.keys(S.workers || {})).filter((v, i, a) => a.indexOf(v) === i && STATIONS[v]).reduce((a, st) => a + wageOf(st), 0);
