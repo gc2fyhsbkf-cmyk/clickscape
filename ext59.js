@@ -7,6 +7,7 @@
 /* ---------- 1) "out of materials" only changes after it's been true for a moment ---------- */
 // workers using inputs the instant they arrive made the notice flash on and off every frame
 const MAT_ST = {};
+const matMissText = a => { for (const id in (a.inp || {})) { const n = a.inp[id] - have(id); if (n > 0) return `⚠ need ${fmt(n)} more ${ITEMS[id]?.name || id}`; } return '⚠ out of materials'; };
 liveExtra = (orig => function (L) {
   const r = orig.apply(this, arguments);
   const t = Date.now();
@@ -14,7 +15,7 @@ liveExtra = (orig => function (L) {
     const st = e.dataset.status, a = ACTIONS[S.target[st]]; if (!a) return;
     const raw = !canMakeOne(a), s = MAT_ST[st] ||= { shown: raw, since: t };
     if (raw === s.shown) s.since = t; else if (t - s.since > 1500) { s.shown = raw; s.since = t; }
-    setT(e, s.shown ? '⚠ out of materials' : '');
+    setT(e, s.shown ? matMissText(a) : '');
   });
   return r;
 })(liveExtra);
@@ -95,4 +96,3 @@ function boot59() {
   const x = tidyRogue(); if (x > 0) { const c = Math.min(5e6, 2000 * (1 + lifeAsc()) * x); gainCoins(c); setTimeout(() => toast(`🦹 Tidied ${fmt(x)} spare Rogue pieces from your bank (traded for 🪙${fmt(c)}). The outfit now works just by owning it.`, 'rare', 7000), 2500); }
   recalc(); UI.force = true; render();
 }
-boot59();
