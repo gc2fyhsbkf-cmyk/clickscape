@@ -38,7 +38,7 @@ function maybeQ(id, q) {
   if (q !== 1 || !DROP_ONLY.has(id)) return id;
   const k = Math.min(2, Math.sqrt(M.luck || 1)); const t = rollQ(DROP_Q.map(p => p * k)); if (!t) return id;
   const qid = qItem(id, t), Q = QUAL[t];
-  if (!OFF) setTimeout(() => { if (t >= 3 && typeof fanLegend === 'function') fanLegend({ kind: `${t >= 4 ? '🔶 LEGENDARY' : '🟣 MASTERWORK'} DROP`, icon: itemIcon(qid), name: ITEMS[qid].name, sub: `Dropped with quality · stats ×${Q.k}` }); else if (typeof fanBanner === 'function') fanBanner(itemIcon(qid), `${Q.n} drop!`, `${ITEMS[qid].name} · stats ×${Q.k}`); }, 400);
+  if (!OFF) ((typeof CHEST_DEFER !== 'undefined' && CHEST_DEFER) ? (f => f()) : (f => setTimeout(f, 400)))(() => { if (t >= 3 && typeof fanLegend === 'function') fanLegend({ kind: `${t >= 4 ? '🔶 LEGENDARY' : '🟣 MASTERWORK'} DROP`, icon: itemIcon(qid), name: ITEMS[qid].name, sub: `Dropped with quality · stats ×${Q.k}` }); else if (typeof fanBanner === 'function') fanBanner(itemIcon(qid), `${Q.n} drop!`, `${ITEMS[qid].name} · stats ×${Q.k}`); });
   else OFFLOG.push(`◆ ${ITEMS[qid].name} dropped with ${Q.n} quality!`);
   return qid;
 }

@@ -74,4 +74,3 @@ ocModal = (orig => function () {
 })(ocModal);
 
 function boot62() { boot61(); UI.force = true; render(); }
-boot62();

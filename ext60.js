@@ -28,7 +28,7 @@ function wevSpawn() {
   const st = sts[randInt(0, sts.length - 1)];
   const L = WEV_TYPES.filter(t => t.ok(st)); let r = Math.random() * L.reduce((a, t) => a + t.w, 0), T = L[0]; for (const t of L) { if ((r -= t.w) <= 0) { T = t; break; } }
   WEV.cur = { st, k: T.k, until: Date.now() + 120e3 };
-  wevDraw(); try { SFX2?.play?.('contract'); } catch (e) {}
+  wevDraw(); try { SFX2('contract'); } catch (e) {}
 }
 function wevDraw() {
   let el = document.getElementById('wevent');
@@ -106,7 +106,7 @@ killMonster = (orig => function () {
 })(killMonster);
 autoSellNow = function () {
   const L = S.autosell; if (!L || !AS_BASE) return; let total = 0;
-  for (const id in L) { if (!L[id] || S.locked?.[id] || isCarried(id)) continue; const n = Math.max(0, have(id) - (AS_BASE[id] || 0)); if (n > 0) { total += saleTake(id, n, sellPrice(id)); remove(id, n); AS_BASE[id] = have(id); } }
+  for (const id in L) { if (!L[id] || S.locked?.[id]) continue; const n = Math.max(0, have(id) - (AS_BASE[id] || 0)); if (n > 0) { total += saleTake(id, n, sellPrice(id)); remove(id, n); AS_BASE[id] = have(id); } }
   if (total) gainCoins(total);
 };
 // a small 🗑️ on bank tiles of items that are set to auto-sell, so it's never a surprise
