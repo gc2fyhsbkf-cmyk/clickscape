@@ -80,5 +80,26 @@ openItemModal = (orig => function (id) {
   $('#modal .item-modal')?.insertAdjacentHTML('beforeend', '<p class="small muted">Quality lifts an item close to the next metal tier, but never past it.</p>');
 })(openItemModal);
 
-function boot58() { boot57(); requalify(); recalc(); UI.force = true; render(); }
-boot58();
+
+/* ---------- FIX: quality gear vanishing on reload ---------- */
+// loading a save threw away any item the game didn't know yet, and quality items are only created
+// on demand, so equipped or banked Fine/Superior/... gear was deleted every time the game opened.
+// Now every quality item in the save is re-created before the save is read.
+function preQuality(txt) { if (!txt) return; const re = /"([a-z0-9_]+?)__q([1-4])"/g; let m; while ((m = re.exec(txt))) if (ITEMS[m[1]]) qItem(m[1], +m[2]); }
+load = (orig => function () { try { preQuality(localStorage.getItem(SAVE_KEY)); } catch (e) {} return orig.apply(this, arguments); })(load);
+// one-time recovery: quality gear in a recent backup (same ascension) that's missing now comes back
+function recoverQuality() {
+  if (S.lifetime.qRecovered) return; S.lifetime.qRecovered = true;
+  let B = []; try { B = readBaks(); } catch (e) { return; }
+  const owned = () => new Set([...Object.keys(S.bank || {}), ...Object.values(S.equip || {}), ...Object.keys(S.costume || {}), ...(S.carried || []), ...(S.kitGear || []), ...Object.values(S.loadouts || {}).flatMap(l => Object.values(l?.equip || {}))].filter(Boolean));
+  const got = [];
+  for (const b of B) {
+    if (b.asc !== lifeAsc() || b.td !== tcount()) continue;
+    let d; try { d = JSON.parse(b.data); } catch (e) { continue; }
+    const have_ = owned(); const ids = [...Object.keys(d.bank || {}), ...Object.values(d.equip || {})].filter(id => id && /__q[1-4]$/.test(id));
+    for (const id of ids) { if (have_.has(id)) continue; preQuality(`"${id}"`); if (!ITEMS[id]) continue; add(id, Math.max(1, Math.min(5, d.bank?.[id] || 1))); got.push(id); have_.add(id); }
+  }
+  if (got.length) setTimeout(() => toast(`🛠️ Sorry! A bug was removing quality gear when the game reopened. Recovered from your backups: ${got.map(id => ITEMS[id].name).join(', ')}. Check your bank and re-equip.`, 'rare', 12000), 1500);
+}
+
+function boot58() { boot57(); try { ensureQuality(); recoverQuality(); } catch (e) { console.warn(e); } requalify(); recalc(); UI.force = true; render(); }

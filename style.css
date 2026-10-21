@@ -981,3 +981,6 @@ body.has-goal #view { padding-top: calc(86px + var(--safe-t)); }
 .tabedit h3 { margin: 4px 0 0; font-size: 14px; text-align: left; }
 /* v9.33.1 tap particles must float above the stage, never take up space in it */
 .stage > .sk-p, .sk-sticky .stage > .sk-p { position: absolute; grid-column: auto; grid-row: auto; margin: 0; }
+/* v9.37 */
+.btn.danger-soft { background: linear-gradient(#5a2a24, #3a1a16); color: #ffb0a0; }
+.destroy-row { margin-top: 6px; }
