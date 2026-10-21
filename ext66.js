@@ -49,4 +49,3 @@ chestModal = (orig => function (all) {
 // pending chests still count as unopened in the item window / bank totals (nothing to change), and
 // chests made before this update already gave their loot
 function boot66() { boot65(); }
-boot66();
