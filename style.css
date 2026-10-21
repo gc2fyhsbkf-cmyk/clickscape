@@ -969,3 +969,15 @@ body.has-goal #view { padding-top: calc(86px + var(--safe-t)); }
 .coach { position: relative; animation: coachPulse 1.2s ease-in-out infinite; z-index: 3; }
 @keyframes coachPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,200,60,.0), inset 0 0 0 2px #ffd040; } 50% { box-shadow: 0 0 0 8px rgba(255,200,60,.35), inset 0 0 0 2px #ffd040; } }
 .stage.coach::after { content: '👆 Tap here!'; position: absolute; right: 10px; bottom: 6px; font-weight: 800; color: #ffe08a; text-shadow: var(--shadow); font-size: .85rem; z-index: 4; }
+
+/* v9.33 bank tab editor & costumes */
+.chip.tab-edit { flex: 0 0 auto; opacity: .85; }
+.tabedit .te-list { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 12px; max-height: 52vh; overflow-y: auto; }
+.tabedit .te-row { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 10px; background: rgba(255,255,255,.05); }
+.tabedit .te-row > span { flex: 1; text-align: left; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tabedit .te-row.off > span { opacity: .45; text-decoration: line-through; }
+.tabedit .btn.mini { padding: 4px 9px; min-width: 0; font-size: 12px; flex: 0 0 auto; }
+.tabedit .btn.mini:disabled { opacity: .3; }
+.tabedit h3 { margin: 4px 0 0; font-size: 14px; text-align: left; }
+/* v9.33.1 tap particles must float above the stage, never take up space in it */
+.stage > .sk-p, .sk-sticky .stage > .sk-p { position: absolute; grid-column: auto; grid-row: auto; margin: 0; }

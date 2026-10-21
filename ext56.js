@@ -114,4 +114,3 @@ function boot56() {
   else S.lifetime.introDone = true;
   UI.force = true; render();
 }
-boot56();
