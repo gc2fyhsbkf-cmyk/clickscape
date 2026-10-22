@@ -84,4 +84,3 @@ css79.textContent = `.tease{color:#c8a0ff;font-weight:600}`;
 document.head.appendChild(css79);
 
 function boot79() { boot78(); applyCaps(); refreshLevels(); recalc(); loopIntro(); UI.force = true; render(); }
-boot79();

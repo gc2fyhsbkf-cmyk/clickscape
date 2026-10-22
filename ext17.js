@@ -96,6 +96,10 @@ document.addEventListener('click', e => {
 })();
 function boot17() {
   boot16(); trackPeaks();
-  if (!S.lifetime.kitGiven && !S.asc.count && !(S.trans?.count) && totalLevel() < 60) { giveKit(); S.lifetime.kitGiven = 1; }
+  // a brand-new account starts with no weapon or armour (smith your own bronze!), just basic tools, a little food and coins
+  if (!S.lifetime.kitGiven && !S.asc.count && !(S.trans?.count) && totalLevel() < 60) {
+    add('shrimp', 20); gainCoins(500); S.combat.food = 'shrimp'; S.kitGear = []; S.lifetime.kitGiven = 1;
+    setTimeout(() => toast('⚒️ You start with nothing but basic tools. Mine copper & tin, smelt bronze bars and smith your first gear at the Anvil.', 'rare', 9000), 2500);
+  }
   recalc(); UI.force = true; render();
 }
