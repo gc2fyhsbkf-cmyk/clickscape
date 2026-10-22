@@ -53,17 +53,34 @@ function salvSafe(id) {
   if (Object.values(S.equip || {}).includes(id) || (typeof isCarried === 'function' && isCarried(id))) return false;
   return true;
 }
-// anything another station is currently using as an input is left alone
-function salvInUse() { const u = new Set(); for (const st in (S.target || {})) { const a = ACTIONS[S.target[st]]; if (a?.inp) for (const id in a.inp) u.add(id); } return u; }
-// what a job would take, biggest surplus value first: [[id, spare]]
+// how much of each item the yard leaves alone. You can set any item yourself; otherwise stacks keep your
+// default amount, and anything a station is working with right now keeps 10× that
+const KEEP_ALL = -1;
+function salvUsedBy(id) {
+  const out = [];
+  for (const st in (S.target || {})) { const a = ACTIONS[S.target[st]]; if (a?.inp?.[id] && STATIONS[st]) out.push(rebrand(SKILLS[STATIONS[st].skill]?.name || st)); }
+  return [...new Set(out)];
+}
+function salvKeepFor(id) {
+  const k = S.salvKeep?.[id]; if (k != null) return k === KEEP_ALL ? Infinity : k;
+  if (ITEMS[id]?.slot) return 0;
+  return salvUsedBy(id).length ? SALV_KEEP() * 10 : SALV_KEEP();
+}
+function salvKeepWhy(id) {
+  const k = S.salvKeep?.[id]; if (k != null) return k === KEEP_ALL ? 'never salvaged (your setting)' : `keep ${fmt(k)} (your setting)`;
+  if (ITEMS[id]?.slot) return 'outclassed: all copies go';
+  const u = salvUsedBy(id); return u.length ? `keep ${fmt(SALV_KEEP() * 10)} · used by ${u.join(', ')}` : `keep ${fmt(SALV_KEEP())} (default)`;
+}
+// everything a job could eat that you own: [[id, have, spare]]
+function salvAll(s) {
+  const out = [], seen = new Set();
+  if (s.gear) { try { for (const id of outclassed()) if (salvSafe(id)) { out.push(id); seen.add(id); } } catch (e) {} }
+  for (const id in S.bank) { const it = ITEMS[id]; if (!it || it.slot || seen.has(id) || !s.take(it) || !salvSafe(id)) continue; out.push(id); }
+  return out.map(id => [id, have(id), Math.max(0, have(id) - salvKeepFor(id))]);
+}
+// what a job would take, biggest spare value first: [[id, spare]]
 function salvCands(s) {
-  const keep = SALV_KEEP(), out = [], used = salvInUse();
-  if (s.gear) { try { for (const id of outclassed()) if (salvSafe(id)) out.push([id, have(id)]); } catch (e) {} }
-  for (const id in S.bank) {
-    const it = ITEMS[id]; if (!it || it.slot || used.has(id) || !s.take(it) || !salvSafe(id)) continue;
-    const spare = have(id) - keep; if (spare > 0) out.push([id, spare]);
-  }
-  return out.sort((x, y) => y[1] * (ITEMS[y[0]].value || 1) - x[1] * (ITEMS[x[0]].value || 1));
+  return salvAll(s).filter(r => r[2] > 0).map(r => [r[0], r[2]]).sort((x, y) => y[1] * (ITEMS[y[0]].value || 1) - x[1] * (ITEMS[x[0]].value || 1));
 }
 // each job processes a load worth about this many coins (grows with level)
 const salvLoad = () => 20 * Math.pow(1 + (LV.archaeology || 1) / 10, 2);
@@ -74,7 +91,7 @@ function salvYield(st, a, n, xpScale = 1) {
   const C = SALV_CACHE[s.id]; let list;
   if (C && Math.abs(GT - C.t) < 5) list = C.list; else { list = salvCands(s); SALV_CACHE[s.id] = { t: GT, list }; }
   for (const row of list) {
-    const id = row[0], spare = Math.min(row[1], Math.max(0, have(id) - (ITEMS[id].slot ? 0 : SALV_KEEP())));
+    const id = row[0], spare = Math.min(row[1], Math.max(0, have(id) - salvKeepFor(id)));
     if (left <= 0) break;
     const V = Math.max(1, ITEMS[id].value || 1), per = ITEMS[id].slot ? 1 : Math.max(1, Math.ceil(L / V));
     const k = Math.min(left, Math.ceil(spare / per)); if (k <= 0) continue;
@@ -83,9 +100,8 @@ function salvYield(st, a, n, xpScale = 1) {
     comps += k * Math.max(1, Math.round(2 * Math.log10(1 + w)));
     xp += k * salvXp(a, w);
   }
-  // nothing spare? your scrappers pick over the yard's own heaps: 60% XP and one component a job
-  if (left > 0) { comps += left; xp += left * salvXp(a, L) * 0.6; left = 0; }
-  const done = n - left;
+  // nothing spare: the yard stands idle (no components, no XP)
+  const done = n - left; if (done <= 0) { SALV_LAST[a.id] = { took: {}, comps: 0, t: GT, idle: true }; return 0; }
   add(s.comp, comps); gainXP('archaeology', xp * (xpScale ?? 1));
   track('yield', st, done); track('act', a.id, done);
   SALV_LAST[a.id] = { took, comps, t: GT };
@@ -95,7 +111,7 @@ function salvYield(st, a, n, xpScale = 1) {
   const k = sites.length ? rollCount(done, (1 / 15) * (M.luck || 1)) : 0;
   for (let i = 0; i < Math.min(k, 50); i++) { const d = sites[Math.min(sites.length - 1, Math.floor(Math.pow(Math.random(), 0.6) * sites.length))]; const id = 'damaged_' + d.arts[randInt(0, d.arts.length - 1)][0]; if (ITEMS[id]) { rareGet(id, 1, 'artifact'); logItem(id, 1); } }
   rollPet(st, done);
-  return n;
+  return done;
 }
 
 /* ---------- the Workshop: restoring uses components now ---------- */
@@ -155,13 +171,32 @@ tickCore = (orig => function (dt) {
 /* ---------- the Salvaging page ---------- */
 function salvPanel() {
   const keep = SALV_KEEP(), opts = [100, 1000, 10000, 100000];
-  const tgt = ACTIONS[S.target?.dig]; const next = tgt?.salv ? salvCands(tgt.salv).slice(0, 6) : [];
   const g = gadgets(), act = GADGETS.filter(G => g[G.g] > 0);
-  return `<div class="panel small salv-panel"><b>♻️ Salvaging</b> <small class="muted">breaks down what you have too much of. Stacks keep <b>${fmt(keep)}</b>; outclassed gear goes entirely. Anything your other stations are using, and locked, favourite, equipped, carried and rare items, are never touched.</small>
-    <div class="row-btns">Keep: ${opts.map(o => `<button class="btn small ${o === keep ? 'on' : ''}" data-act="salv-keep" data-v="${o}">${fmt(o)}</button>`).join('')}</div>
-    ${tgt?.salv ? `<div class="salv-next"><small class="muted">${esc(tgt.name)} next takes:</small> ${next.length ? next.map(([id, q]) => `<span class="salv-chip" title="${esc(ITEMS[id].name)}">${itemIcon(id)}<small>${fmt(q)}</small></span>`).join('') : `<small class="y">nothing spare: scrappers pick over the yard's heaps (60% XP, 1 component a job). It eats ${tgt.salv.what}.</small>`}</div>` : ''}
+  const onYard = (UI.station?.archaeology || 'dig') === 'dig';
+  const tgt = ACTIONS[S.target?.dig];
+  let list = '';
+  if (onYard && tgt?.salv) {
+    const rows = salvAll(tgt.salv).sort((x, y) => y[2] - x[2] || y[1] - x[1]), spare = rows.filter(r => r[2] > 0).length;
+    const shown = UI.salvAll ? rows : rows.slice(0, 8);
+    list = `<h4 class="salv-h">${esc(tgt.name)}: what happens to each pile</h4>
+      ${spare ? '' : `<div class="salv-idle">⚠️ <b>Idle:</b> nothing to salvage. Every pile this job eats is at or under what you keep, so it makes nothing.</div>`}
+      <div class="salv-rows">${shown.map(([id, q, sp]) => `<button class="salv-row ${sp ? 'go' : ''}" data-act="salv-item" data-id="${id}">${itemIcon(id)}<span class="sr-main"><b>${esc(ITEMS[id].name)}</b><small>${fmt(q)} owned · ${salvKeepWhy(id)}</small></span><span class="sr-out">${sp ? `♻️ ${fmt(sp)}` : '<small class="muted">kept</small>'}</span></button>`).join('') || `<small class="muted">You own nothing this job eats (${tgt.salv.what}).</small>`}</div>
+      ${rows.length > 8 ? `<button class="btn small" data-act="salv-all">${UI.salvAll ? 'Show fewer' : `Show all ${rows.length}`}</button>` : ''}`;
+  }
+  return `<div class="panel small salv-panel"><b>♻️ Salvaging</b> <small class="muted">only ever eats the amount above what you keep. Tap any item to set its own keep amount. Locked, favourite, equipped, carried and rare items are never touched.</small>
+    ${onYard ? `<div class="row-btns">Default keep: ${opts.map(o => `<button class="btn small ${o === keep ? 'on' : ''}" data-act="salv-keep" data-v="${o}">${fmt(o)}</button>`).join('')}</div><small class="muted">Items a station is working with right now keep 10× the default unless you set them.</small>` : ''}
+    ${list}
     <div class="salv-comps">${COMP_IDS.map(id => `<span class="salv-chip" title="${esc(ITEMS[id].name)}">${itemIcon(id)}<small data-count="${id}">${fmt(have(id))}</small></span>`).join('')}</div>
-    <div class="salv-gad">${act.length ? act.map(G => `<span class="gad-on">${G.emoji} <b>${G.name}</b> <small>${fmtTime(g[G.g])}</small></span>`).join('') : '<small class="muted">No gadgets running: build them at the Workshop below.</small>'}</div></div>`;
+    <div class="salv-gad">${act.length ? act.map(G => `<span class="gad-on">${G.emoji} <b>${G.name}</b> <small>${fmtTime(g[G.g])}</small></span>`).join('') : '<small class="muted">No gadgets running: build them at the Workshop.</small>'}</div></div>`;
+}
+let SSIG = { t: -9, v: '' };
+function salvSig() { if (Math.abs(GT - SSIG.t) < 2) return SSIG.v; const tg = ACTIONS[S.target?.dig]; SSIG = { t: GT, v: tg?.salv ? salvAll(tg.salv).map(r => r[2] > 0 ? 1 : 0).join('') : '' }; return SSIG.v; }
+function salvItemModal(id) {
+  const cur = S.salvKeep?.[id], opts = [[0, 'Salvage all'], [100, '100'], [1000, '1,000'], [10000, '10,000'], [100000, '100,000'], [KEEP_ALL, 'Never salvage']];
+  openModal(`<div class="item-modal"><h2>${itemIcon(id)} ${esc(ITEMS[id].name)}</h2><p class="small">You own <b>${fmt(have(id))}</b>. Now: ${salvKeepWhy(id)}.</p><p class="small muted">How many should the Salvage yard always leave?</p>
+    <div class="row-btns wrap">${opts.map(([v, l]) => `<button class="btn ${cur === v ? 'on' : ''}" data-act="salv-set" data-id="${id}" data-v="${v}">${l}</button>`).join('')}</div>
+    <div class="row-btns"><input type="number" min="0" step="1" id="salv-num" placeholder="Other amount" style="width:9em"><button class="btn" data-act="salv-set" data-id="${id}" data-v="num">Set</button></div>
+    <div class="row-btns"><button class="btn ${cur == null ? 'on' : ''}" data-act="salv-set" data-id="${id}" data-v="def">Use default</button><button class="btn" data-act="close">Done</button></div></div>`);
 }
 viewSkill = (orig => function () {
   let h = orig(); if (UI.skill !== 'archaeology') return h;
@@ -172,14 +207,27 @@ viewSkill = (orig => function () {
   return h;
 })(viewSkill);
 VIEWS.skill = (orig => function () { return rebrand(orig()); })(viewSkill);
-viewSig = (orig => function () { return UI.view === 'skill' && UI.skill === 'archaeology' ? orig() + '|sv' + SALV_KEEP() + Object.values(gadgets()).map(t => t > 0 ? Math.ceil(t / 60) : 0).join() : orig(); })(viewSig);
-document.addEventListener('click', e => { const t = e.target.closest('[data-act="salv-keep"]'); if (!t) return; e.stopImmediatePropagation(); S.settings.salvKeep = +t.dataset.v; UI.force = true; render(); }, true);
+viewSig = (orig => function () { return UI.view === 'skill' && UI.skill === 'archaeology' ? orig() + '|sv' + SALV_KEEP() + JSON.stringify(S.salvKeep || {}) + !!UI.salvAll + (S.target?.dig || '') + salvSig() + Object.values(gadgets()).map(t => t > 0 ? Math.ceil(t / 60) : 0).join() : orig(); })(viewSig);
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act^="salv-"]'); if (!t) return; const a = t.dataset.act;
+  if (!['salv-keep', 'salv-item', 'salv-set', 'salv-all'].includes(a)) return; e.stopImmediatePropagation();
+  for (const k in SALV_CACHE) delete SALV_CACHE[k]; SSIG.t = -9;
+  if (a === 'salv-keep') S.settings.salvKeep = +t.dataset.v;
+  else if (a === 'salv-all') UI.salvAll = !UI.salvAll;
+  else if (a === 'salv-item') return salvItemModal(t.dataset.id);
+  else { const id = t.dataset.id, v = t.dataset.v; S.salvKeep ||= {};
+    if (v === 'def') delete S.salvKeep[id];
+    else if (v === 'num') { const n = Math.floor(+($('#salv-num')?.value)); if (!(n >= 0)) return toast('Type an amount first.', 'warn'); S.salvKeep[id] = n; }
+    else S.salvKeep[id] = +v;
+    salvItemModal(id); }
+  UI.force = true; render();
+}, true);
 // the action window explains a salvage job
 const _actInfo77 = actInfo;
 actInfo = function (id) {
   _actInfo77(id); const a = ACTIONS[id], box = $('#modal .act-info'); if (!box || !(a?.salv || a?.gadget)) return;
   const s = a.salv, G = a.gadget;
-  box.insertAdjacentHTML('beforeend', s ? `<h3>How salvaging works</h3><p class="small">Eats ${s.what}, biggest pile first, down to the keep amount you set (${fmt(SALV_KEEP())}). Each job breaks down about 🪙${fmt(salvLoad())} worth and gives ${itemIcon(s.comp)} ${ITEMS[s.comp].name}: more for pricier junk. About 1 job in 15 turns up a damaged artefact for the Workshop.</p>`
+  box.insertAdjacentHTML('beforeend', s ? `<h3>How salvaging works</h3><p class="small">Eats ${s.what}, biggest pile first, only the amount above what you keep (tap items on the Salvage yard to set each one). With nothing spare it stands idle. Each job breaks down about 🪙${fmt(salvLoad())} worth and gives ${itemIcon(s.comp)} ${ITEMS[s.comp].name}: more for pricier junk. About 1 job in 15 turns up a damaged artefact for the Workshop.</p>`
     : `<h3>Gadget</h3><p class="small">${G.desc}. Each build adds 1 minute (stacks up to 8 hours). Costs grow every 25 Salvaging levels.</p>`);
 };
 
@@ -195,6 +243,7 @@ const css77 = document.createElement('style');
 css77.textContent = `.salv-panel .row-btns{margin:6px 0;gap:4px;align-items:center}.salv-panel .btn.on{outline:2px solid var(--gold,#e8c060)}
 .salv-next,.salv-comps,.salv-gad{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:4px}
 .salv-chip{display:inline-flex;align-items:center;gap:2px}.salv-chip small{font-variant-numeric:tabular-nums}
+.salv-h{margin:8px 0 4px}.salv-idle{background:rgba(232,120,60,.15);border-radius:8px;padding:6px 8px;margin:4px 0}.salv-rows{display:flex;flex-direction:column;gap:4px}.salv-row{display:flex;align-items:center;gap:8px;text-align:left;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:5px 8px;color:inherit;font:inherit}.salv-row.go{border-color:rgba(120,200,120,.35)}.sr-main{flex:1;display:flex;flex-direction:column;min-width:0}.sr-main small{opacity:.75}.sr-out{font-variant-numeric:tabular-nums;white-space:nowrap}.row-btns.wrap{flex-wrap:wrap}
 .gad-on{background:rgba(232,192,96,.12);border-radius:8px;padding:2px 6px}
 .fish-cnt{display:inline-flex;align-items:center;gap:1px;margin-right:4px}.fish-cnt small{font-variant-numeric:tabular-nums;opacity:.85}`;
 document.head.appendChild(css77);
