@@ -50,4 +50,3 @@ ascend = (orig => function () {
 })(ascend);
 
 function boot81() { boot80(); runLockFix(); UI.force = true; render(); }
-boot81();
