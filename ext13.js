@@ -24,8 +24,8 @@ const offerBonus = () => (OFFERS.find(o => o[0] === (S.tribute?.offer || 1)) || 
 
 /* ================= ASCENSION BOUNTIES ================= */
 function rollBounties() {
-  const c = S.asc.count || 0, out = [], used = new Set();
-  const bosses = MONSTERS.filter(m => m.boss && !m.raid && !m.season && !m.transReq && !m.ascReq && m.area !== 'echo' && m.area !== 'minigames');
+  const c = Math.min(10, S.asc.count || 0), out = [], used = new Set(), mxc = typeof maxCombat === 'function' ? maxCombat() : 999;
+  const bosses = MONSTERS.filter(m => m.boss && !m.raid && !m.season && !m.transReq && !m.ascReq && m.area !== 'echo' && m.area !== 'minigames' && (m.minCombat || 0) <= mxc);
   const raids = ['cox', 'tob', 'toa', 'gauntlet', 'caves', 'ba', 'pc'].filter(r => r !== 'pc');
   const skills = SKILL_ORDER.filter(s => !['hitpoints'].includes(s));
   const makers = [

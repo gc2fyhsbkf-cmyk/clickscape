@@ -12,7 +12,7 @@ function toolSVG(kind, tint) {
   switch (kind) {
     case 'pickaxe': return haft(34) + `<path d="M-18 -30 Q0 -42 18 -30 L16 -27 Q0 -36 -16 -27 Z" fill="${c}" stroke="${O}" stroke-width="1.4"/>`;
     case 'hatchet': return haft(32) + `<path d="M2 -32 Q16 -36 16 -24 Q16 -16 2 -20 Z" fill="${c}" stroke="${O}" stroke-width="1.4"/>`;
-    case 'mattock': return haft(32) + `<path d="M-14 -30 L14 -30 L12 -25 L-12 -25 Z" fill="${c}" stroke="${O}" stroke-width="1.4"/>`;
+    case 'mattock': { const bar = 'M2 8 L1 -28 Q1 -40 -8 -40 Q-14 -40 -14 -34'; return `<path d="${bar}" fill="none" stroke="${O}" stroke-width="6.4" stroke-linecap="round"/><path d="${bar}" fill="none" stroke="${c}" stroke-width="3.6" stroke-linecap="round"/><path d="M2 8 L6 12" stroke="${O}" stroke-width="6.4" stroke-linecap="round"/><path d="M2 8 L6 12" stroke="${c}" stroke-width="3.6" stroke-linecap="round"/>`; } // salvage crowbar
     case 'rod': return `<path d="M0 6 L0 -46" stroke="${O}" stroke-width="4" stroke-linecap="round"/><path d="M0 6 L0 -46" stroke="${c === '#9a9aa2' ? '#8a6a3a' : c}" stroke-width="2.4" stroke-linecap="round"/><path class="sk-line" d="M0 -46 Q14 -30 22 12" stroke="#e8e0c8" stroke-width=".9" fill="none"/>`;
     case 'hammer': return haft(24) + `<rect x="-9" y="-30" width="18" height="10" rx="2" fill="#7a7a82" stroke="${O}" stroke-width="1.4"/>`;
     case 'shovel': return haft(28) + `<path d="M-6 -28 L6 -28 L5 -38 Q0 -42 -5 -38 Z" fill="#7a7a82" stroke="${O}" stroke-width="1.3"/>`;
@@ -30,7 +30,7 @@ function toolSVG(kind, tint) {
   }
 }
 const SK_POSE = {
-  mine: ['pickaxe', 'chop', 'chips'], forest: ['hatchet', 'chop', 'wood'], dig: ['mattock', 'chop', 'dirt'], fish: ['rod', 'cast', 'splash'],
+  mine: ['pickaxe', 'chop', 'chips'], forest: ['hatchet', 'chop', 'wood'], dig: ['mattock', 'chop', 'chips'], fish: ['rod', 'cast', 'splash'],
   anvil: ['hammer', 'chop', 'sparks'], furnace: ['shovel', 'stoke', 'embers'], range: ['pan', 'stir', 'steam'], herb: ['pestle', 'grind', 'herbs'],
   craft: ['needle', 'tap', 'sparkle'], fletch: ['knife', 'whittle', 'wood'], fire: ['tinder', 'strike', 'embers'], runealtar: ['rune', 'raise', 'glow'],
   sawmill: ['saw', 'saw', 'wood'], workbench: ['hammer', 'chop', 'wood'], hunt: ['net', 'swing', 'leaf'], restore: ['brush', 'tap', 'dust'],

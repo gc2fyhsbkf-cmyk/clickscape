@@ -27,19 +27,20 @@ recalc4 = (orig => function () {
 // the Mess hall trims meals
 if (typeof mealRate === 'function') mealRate = (orig => function () { return orig.apply(this, arguments) * (1 - 0.02 * estateLvl('mess')); })(mealRate);
 function estatePanel() {
-  return `<div class="panel estate"><h3>🏰 Estate <small class="muted">· kept forever · prices follow your income</small></h3>
+  return `<div class="panel estate"><h3>🏰 Estate <small class="muted">· kept forever · fixed prices</small></h3>
     <div class="list">${ESTATE.map(([id, ic, n, d, max]) => { const l = estateLvl(id), c = estateCost(id, l); return `<div class="upg ${l ? 'got' : ''}"><div class="upg-icon"><span class="emo">${ic}</span></div><div class="upg-main"><b>${n} ${l}/${max}</b><small>${d} per level${l ? ` · <b class="y">now ×${l}</b>` : ''}</small></div>${l >= max ? '<span class="y">MAX</span>' : `<button class="btn" data-act="estate-buy" data-id="${id}" data-afford="${c}">🪙${fmt(c)}</button>`}</div>`; }).join('')}</div></div>`;
 }
 
 /* ================= COSMETIC SHOP ================= */
-const SHOP_SKINS = [['royal', 'Royal', 2], ['obsidian', 'Obsidian', 3], ['aurora', 'Aurora', 5], ['sakura', 'Sakura', 4], ['frost', 'Frost', 4]];
-const SHOP_TITLES = [['t_tycoon', 'the Tycoon', 3], ['t_magnate', 'the Magnate', 6], ['t_baron', 'Baron', 10], ['t_mogul', 'the Mogul', 20], ['t_golden', 'the Golden', 40]];
-const cosmeticPrice = mult => Math.round(Math.max(1e7, 2 * (typeof INCOME_H !== 'undefined' ? INCOME_H : 0)) * mult);
+// fixed prices in big steps: Royal is a late-game treat, Frost is for the richest (transcended many times) accounts
+const SHOP_SKINS = [['royal', 'Royal', 1e9], ['obsidian', 'Obsidian', 1e10], ['sakura', 'Sakura', 1e11], ['aurora', 'Aurora', 1e12], ['frost', 'Frost', 5e13]];
+const SHOP_TITLES = [['t_tycoon', 'the Tycoon', 5e8], ['t_magnate', 'the Magnate', 5e9], ['t_baron', 'Baron', 5e10], ['t_mogul', 'the Mogul', 5e11], ['t_golden', 'the Golden', 2.5e13]];
+const cosmeticPrice = p => p;
 const bought = k => (S.lifetime[k] ||= []);
 SHOP_TITLES.forEach(([id, n]) => TITLES.push([id, n, () => (S.lifetime.titlesBought || []).includes(id)]));
 function cosmeticPanel() {
   const sk = bought('skinsBought'), ti = bought('titlesBought');
-  return `<div class="panel cos-shop"><h3>🎨 Cosmetic shop <small class="muted">· kept forever · prices follow your income</small></h3>
+  return `<div class="panel cos-shop"><h3>🎨 Cosmetic shop <small class="muted">· kept forever · fixed prices</small></h3>
     <small class="muted">Station skins</small><div class="ms-track">${SHOP_SKINS.map(([k, n, m]) => { const own = sk.includes(k); return `<button class="ms-node ${own ? 'got' : ''} skinchip-${k}" data-act="${own ? 'skin-pick' : 'cos-buy'}" data-kind="skin" data-id="${k}"><b>${n}</b><small>${own ? 'use' : '🪙' + fmt(cosmeticPrice(m))}</small></button>`; }).join('')}</div>
     <small class="muted">Titles</small><div class="chips">${SHOP_TITLES.map(([id, n, m]) => { const own = ti.includes(id); return `<button class="chip ${own ? 'on' : ''}" data-act="${own ? 'title' : 'cos-buy'}" data-kind="title" data-id="${id}">${n}${own ? '' : ` · 🪙${fmt(cosmeticPrice(m))}`}</button>`; }).join('')}</div></div>`;
 }

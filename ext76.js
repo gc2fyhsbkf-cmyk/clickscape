@@ -47,6 +47,9 @@ const UNIV = lvl => lvl >= 80 ? [['cut_dragonstone', 1 / 400, 1, 1]] : lvl >= 40
   }
 })();
 
+// runes became spell scrolls long ago: swap any rune in these tables for the matching scroll
+for (const a of STATION_ACTIONS.thieve || []) if (a.thieve?.loot && typeof deRune === 'function') deRune(a.thieve.loot);
+
 /* ---------- farmlands ---------- */
 // see flCps (ext26): a field now harvests ~9× slower for one hand and far less for big crews (hands^0.75),
 // while each harvest gives 5× the XP (ext33), so Farming XP holds up and the flax flood dries up

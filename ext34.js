@@ -17,7 +17,7 @@ const JOURNEY = [
   ['acad', '🎓 Hire a combat trainer', 'The Combat academy trains combat skills in the background for a wage.', () => Object.values(S.academy?.t || {}).some(n => n > 0), () => lifeAsc() >= 1],
   ['land', '🌾 Buy a farmland', 'Farmlands grow crops non-stop with hired hands: the easy way to get lots of herbs.', () => (S.farmlands || []).length > 0, () => lifeAsc() >= 1],
   ['exp', '🧭 Send an expedition', 'Expeditions (Menu) bring back loot for your tier after a real-time trip.', () => (S.lifetime.exped || 0) > 0 || (S.exped || []).some(Boolean), () => lifeAsc() >= 1],
-  ['shrine', '⛩️ Build a shrine', 'Archaeology finds build shrines in your house for permanent boosts.', () => Object.keys(S.house?.shrines || {}).length > 0, () => LV.archaeology >= 10],
+  ['shrine', '⚙️ Build a contraption', 'Salvaged components build permanent contraptions at the Workshop.', () => Object.keys(S.museum || {}).length > 0, () => LV.archaeology >= 10],
   ['asc3', '🌀 Ascend 3 times', 'Each ascension raises your level caps and gives more sigils.', () => lifeAsc() >= 3, () => lifeAsc() >= 1],
   ['chal', '🏁 Complete a challenge', 'Pick a challenge on the Run tab for your next ascension: finish it for a permanent reward.', () => Object.values(S.lifetime.chal || {}).some(n => n > 0), () => lifeAsc() >= 2],
   ['set', '🛡️ Wear a full metal set', 'Helm, body, legs and shield of one metal give a set bonus.', () => !!M.setBonus, () => lifeAsc() >= 1],

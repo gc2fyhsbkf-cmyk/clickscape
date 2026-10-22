@@ -4,7 +4,7 @@
    The Salvage yard breaks down what you have too much of (outclassed gear, piles of logs, crops,
    fish, gems, bones, runes, potions) into five components. The Workshop turns components into
    gadgets that speed up your other skills for a while, and still restores artefacts for the
-   museum and shrines (salvaging turns up damaged artefacts as you go).
+   permanent contraptions (which replace the museum and shrines).
    ========================================================= */
 
 /* ---------- branding ---------- */
@@ -22,6 +22,8 @@ const COMPS = [
 ];
 for (const [id, name, emoji, tint] of COMPS) item(id, name, 2, { cat: 'arch', kind: 'component', emoji, tint, desc: 'A salvaged component. The Workshop builds gadgets from it.' });
 const COMP_IDS = COMPS.map(c => c[0]);
+// the old museum artefacts have no use any more: they're ordinary salvage now
+for (const it of Object.values(ITEMS)) if (it.cat === 'arch' && it.kind === 'artifact') it.rare = false;
 
 /* ---------- what each salvage job eats ---------- */
 const SALV_KEEP = () => S.settings.salvKeep ?? 1000;
@@ -33,10 +35,10 @@ const SALV = [
     take: it => it.cat === 'log' || (it.cat === 'farm' && !/_seed$/.test(it.id)) || it.id === 'flax' || (it.cat === 'herb' && it.kind === 'herb') },
   { id: 'sv_oil', name: 'Render fish oil', lvl: 15, hp: 6, comp: 'render_oil', icon: 'render_oil', what: 'spare raw and burnt fish',
     take: it => it.cat === 'fish' },
-  { id: 'sv_dust', name: 'Grind to dust', lvl: 25, hp: 8, comp: 'gem_dust', icon: 'gem_dust', what: 'spare gems, bones, hides, old dig-site materials',
-    take: it => it.cat === 'gem' || it.cat === 'drop' || (it.cat === 'arch' && it.kind === 'material') },
-  { id: 'sv_arcane', name: 'Distil arcane essence', lvl: 40, hp: 12, comp: 'arcane_essence', icon: 'arcane_essence', what: 'spare runes, potions and essence',
-    take: it => it.kind === 'rune' || isRune(it.id) || it.kind === 'potion' || (/essence$/.test(it.id) && it.id !== 'arcane_essence') },
+  { id: 'sv_dust', name: 'Grind to dust', lvl: 25, hp: 8, comp: 'gem_dust', icon: 'gem_dust', what: 'spare gems, bones, hides, old dig-site materials and artefacts',
+    take: it => it.cat === 'gem' || it.cat === 'drop' || (it.cat === 'arch' && (it.kind === 'material' || it.kind === 'artifact')) },
+  { id: 'sv_arcane', name: 'Distil arcane essence', lvl: 40, hp: 12, comp: 'arcane_essence', icon: 'arcane_essence', what: 'spare spell scrolls, old runes, potions and essence',
+    take: it => it.kind === 'rune' || isRune(it.id) || it.kind === 'scroll' || it.kind === 'potion' || (/essence$/.test(it.id) && it.id !== 'arcane_essence') },
 ];
 for (const s of SALV) {
   const a = { id: s.id, st: 'dig', name: s.name, lvl: s.lvl, xp: Math.round(s.hp * 2.5), hp: s.hp, out: { [s.comp]: 1 }, icon: s.icon, salv: s };
@@ -48,7 +50,7 @@ STATION_ACTIONS.dig = SALV.map(s => ACTIONS[s.id]);
 function salvSafe(id) {
   const it = ITEMS[id]; if (!it || !have(id)) return false;
   if (S.locked?.[id] || S.fav?.[id] || it.rare || it.untradeable || it.cosmetic || it.outfit || it.perk || (it.hidden && it.kind !== 'rune')) return false;
-  if (String(id).includes('__q') || COMP_IDS.includes(id) || it.kind === 'artifact' || /^damaged_/.test(id)) return false;
+  if (String(id).includes('__q') || COMP_IDS.includes(id) || it.kind === 'gadget') return false;
   if (id === S.combat?.food || id === S.combat?.bag?.id) return false;
   if (Object.values(S.equip || {}).includes(id) || (typeof isCarried === 'function' && isCarried(id))) return false;
   return true;
@@ -63,12 +65,13 @@ function salvUsedBy(id) {
 }
 function salvKeepFor(id) {
   const k = S.salvKeep?.[id]; if (k != null) return k === KEEP_ALL ? Infinity : k;
-  if (ITEMS[id]?.slot) return 0;
+  if (ITEMS[id]?.slot || ITEMS[id]?.kind === 'artifact') return 0;
   return salvUsedBy(id).length ? SALV_KEEP() * 10 : SALV_KEEP();
 }
 function salvKeepWhy(id) {
   const k = S.salvKeep?.[id]; if (k != null) return k === KEEP_ALL ? 'never salvaged (your setting)' : `keep ${fmt(k)} (your setting)`;
   if (ITEMS[id]?.slot) return 'outclassed: all copies go';
+  if (ITEMS[id]?.kind === 'artifact') return 'old artefact: no longer used, all go';
   const u = salvUsedBy(id); return u.length ? `keep ${fmt(SALV_KEEP() * 10)} · used by ${u.join(', ')}` : `keep ${fmt(SALV_KEEP())} (default)`;
 }
 // everything a job could eat that you own: [[id, have, spare]]
@@ -106,24 +109,47 @@ function salvYield(st, a, n, xpScale = 1) {
   track('yield', st, done); track('act', a.id, done);
   SALV_LAST[a.id] = { took, comps, t: GT };
   S.lifetime.salvaged = (S.lifetime.salvaged || 0) + Object.values(took).reduce((x, y) => x + y, 0);
-  // damaged artefacts turn up in the junk
-  const sites = DIGSITES.filter(d => d.lvl <= (LV.archaeology || 1) && d.arts?.length);
-  const k = sites.length ? rollCount(done, (1 / 15) * (M.luck || 1)) : 0;
-  for (let i = 0; i < Math.min(k, 50); i++) { const d = sites[Math.min(sites.length - 1, Math.floor(Math.pow(Math.random(), 0.6) * sites.length))]; const id = 'damaged_' + d.arts[randInt(0, d.arts.length - 1)][0]; if (ITEMS[id]) { rareGet(id, 1, 'artifact'); logItem(id, 1); } }
   rollPet(st, done);
   return done;
 }
 
-/* ---------- the Workshop: restoring uses components now ---------- */
-const SITE_COMP = {};
-DIGSITES.forEach((d, i) => { SITE_COMP[d.mat[0]] = COMP_IDS[i % COMP_IDS.length]; });
-for (const a of STATION_ACTIONS.restore || []) {
-  if (!a.inp) continue;
-  for (const id of Object.keys(a.inp)) if (SITE_COMP[id]) { const q = a.inp[id]; delete a.inp[id]; a.inp[SITE_COMP[id]] = (a.inp[SITE_COMP[id]] || 0) + q; }
+/* ---------- contraptions: permanent Workshop builds (replace the museum & shrines) ---------- */
+// one per old dig site, same bonus. Build it once (that's the old museum collection), then upgrade
+// it five times (the old shrine levels). Kept through ascension; old museum sets and shrines carry over.
+const CONTRAP = DIGSITES.map((d, i) => ({ id: d.id, i, lvl: d.lvl, buff: d.buff, name: ['Ore crusher', 'Tide pump', 'Grow lamp', 'Coin press', 'Bellows engine', 'War loom', 'Thought engine', 'Fortune wheel', 'Rift dynamo'][i] || 'Contraption',
+  emoji: ['⛏️', '🌊', '💡', '🪙', '🔥', '⚔️', '🧠', '🎡', '🌀'][i] || '⚙️', c1: COMP_IDS[i % 5], c2: COMP_IDS[(i + 1) % 5] }));
+const contrapLvl = c => (S.museum?.[c.id] ? 1 : 0) + (S.museum?.[c.id] ? (S.house?.shrines?.[c.id] || 0) : 0);
+const contrapCost = (c, L) => ({ a: Math.round(500 * (1 + c.i) * Math.pow(3, L)), b: Math.round(250 * (1 + c.i) * Math.pow(3, L)), coins: Math.round((L ? 5000 * Math.pow(12, L) : 25000) * (1 + c.lvl / 20)), lvl: c.lvl + 10 * L });
+function contrapDesc(c, L) {
+  if (!L) return 'Not built';
+  const b = c.buff, base = b.mult, extra = L - 1, g = b.type === 'grow' ? (1 - base) + Math.min(0.7, (1 - base) * 0.5 * extra) : (base - 1) * (1 + 0.5 * extra);
+  return b.desc.replace(/\d+%/, Math.round(g * 100) + '%');
 }
-if (typeof SHRINES !== 'undefined') for (const s of SHRINES) if (SITE_COMP[s.mat]) s.mat = SITE_COMP[s.mat];
+function contrapPanel() {
+  return `<div class="panel museum"><h3>⚙️ Contraptions <small class="muted">· permanent, kept through ascension</small></h3><p class="small muted">Build each one once from salvaged components, then upgrade it up to 5 times.</p><div class="list">${CONTRAP.map(c => {
+    const L = contrapLvl(c), max = L >= 6, k = contrapCost(c, L), lock = (LV.archaeology || 1) < k.lvl;
+    const ok = !max && !lock && have(c.c1) >= k.a && have(c.c2) >= k.b && S.coins >= k.coins;
+    const need = max ? '<b class="y">Fully upgraded</b>' : `<span class="${have(c.c1) >= k.a ? '' : 'r'}">${itemIcon(c.c1)}${fmt(k.a)}</span> <span class="${have(c.c2) >= k.b ? '' : 'r'}">${itemIcon(c.c2)}${fmt(k.b)}</span> <span class="${S.coins >= k.coins ? '' : 'r'}">🪙${fmt(k.coins)}</span>${lock ? ` · <span class="r">Salvaging ${k.lvl}</span>` : ''}`;
+    return `<div class="upg ${L ? 'got' : ''} ${lock && !L ? 'locked' : ''}"><div class="upg-icon">${c.emoji}</div><div class="upg-main"><b>${c.name} ${L ? (L > 1 ? `+${L - 1}` : '') : ''}</b><small>${contrapDesc(c, L)}${!max ? ` · next: ${contrapDesc(c, L + 1)}` : ''}</small><small>${need}</small></div>${max ? '' : `<button class="btn small ${ok ? '' : 'disabled'}" data-act="contrap" data-id="${c.id}">${L ? 'Upgrade' : 'Build'}</button>`}</div>`;
+  }).join('')}</div></div>`;
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act="contrap"]'); if (!t) return; e.stopImmediatePropagation();
+  const c = CONTRAP.find(x => x.id === t.dataset.id); if (!c) return; const L = contrapLvl(c); if (L >= 6) return; const k = contrapCost(c, L);
+  if ((LV.archaeology || 1) < k.lvl) return toast(`⚙️ Needs Salvaging ${k.lvl}.`, 'warn');
+  if (have(c.c1) < k.a || have(c.c2) < k.b || S.coins < k.coins) return toast(`⚙️ You need ${fmt(k.a)} ${ITEMS[c.c1].name}, ${fmt(k.b)} ${ITEMS[c.c2].name} and 🪙${fmt(k.coins)}.`, 'warn');
+  remove(c.c1, k.a); remove(c.c2, k.b); S.coins -= k.coins;
+  if (!L) S.museum[c.id] = true; else { S.house ||= {}; (S.house.shrines ||= {})[c.id] = L; }
+  recalc(); SFX.play('ach'); toast(`⚙️ ${c.name} ${L ? 'upgraded to +' + L : 'built'}: ${contrapDesc(c, L + 1)}`, 'pet', 4000);
+  UI.force = true; render();
+}, true);
+// the museum and the house shrines are replaced by contraptions on the Workshop tab
+museumPanel = function () { return ''; };
+if (typeof shrinePanel === 'function') shrinePanel = function () { return ''; };
+// restore recipes and artefacts are retired: the Workshop only builds gadgets now
+STATION_ACTIONS.restore = [];
 
-/* ---------- gadgets: timed boosts built from components ---------- */
+/* ---------- gadgets: boosts built from components, burnt one a minute ---------- */
 const GADGETS = [
   { g: 'gather', name: "Gatherer's harness", emoji: '🎒', lvl: 1, inp: { metal_scrap: 12, fibre_bundle: 12 }, desc: '+25% Mining, Woodcutting, Fishing, Hunter & Sailing speed', sts: ['mine', 'forest', 'fish', 'hunt', 'harbour'], mult: 1.25 },
   { g: 'hearth', name: 'Hearth bellows', emoji: '🔥', lvl: 10, inp: { render_oil: 15, fibre_bundle: 8 }, desc: '+25% Cooking, Herbalism, Firemaking, Prayer & Glyphcraft speed', sts: ['range', 'herb', 'fire', 'altar', 'runealtar'], mult: 1.25 },
@@ -131,47 +157,47 @@ const GADGETS = [
   { g: 'war', name: 'War whetstone', emoji: '🗡️', lvl: 40, inp: { metal_scrap: 15, gem_dust: 15 }, desc: '+15% combat damage', dmg: 1.15 },
   { g: 'luck', name: 'Lucky compass', emoji: '🧭', lvl: 60, inp: { gem_dust: 20, arcane_essence: 20 }, desc: 'Rare drops 20% more likely', luck: 1.2 },
 ];
-const GADGET_SEC = 60, GADGET_CAP = 8 * 3600;
+const GADGET_SEC = 60, GADGET_CAP = 480; // one burns each minute; you can stock up to 8 hours' worth
 const gadgetCost = () => 1 + Math.floor((LV.archaeology || 1) / 25);
+const gid = G => 'gadget_' + G.g;
 for (const G of GADGETS) {
-  item('gadget_' + G.g, G.name, 0, { emoji: G.emoji, hidden: true, untradeable: true, desc: G.desc });
-  const a = { id: 'wk_' + G.g, st: 'restore', name: `${G.emoji} Build ${G.name.toLowerCase()}`, lvl: G.lvl, xp: 20 + G.lvl * 3, hp: 5 + Math.floor(G.lvl / 8), inp: { ...G.inp }, out: {}, icon: 'gadget_' + G.g, gadget: G };
-  ACTIONS[a.id] = a;
+  item(gid(G), G.name, 0, { emoji: G.emoji, cat: 'arch', kind: 'gadget', untradeable: true, desc: `${G.desc} while you have any. One is used up every minute.` });
+  const a = { id: 'wk_' + G.g, st: 'restore', name: `${G.emoji} Build ${G.name.toLowerCase()}`, lvl: G.lvl, xp: 20 + G.lvl * 3, hp: 5 + Math.floor(G.lvl / 8), inp: { ...G.inp }, out: { [gid(G)]: 1 }, icon: gid(G), gadget: G };
+  ACTIONS[a.id] = a; STATION_ACTIONS.restore.push(a);
 }
-STATION_ACTIONS.restore = [...GADGETS.map(G => ACTIONS['wk_' + G.g]), ...(STATION_ACTIONS.restore || []).filter(a => !a.gadget)];
-const gadgets = () => (S.gadgets ||= {});
+const gadgetOn = G => have(gid(G)) > 0;
 function syncGadgetCost() { const k = gadgetCost(); for (const G of GADGETS) { const a = ACTIONS['wk_' + G.g]; for (const id in G.inp) a.inp[id] = G.inp[id] * k; } }
 
 doYield = (orig => function (st, a, n, xpScale) {
   if (a?.salv) { const d = salvYield(st, a, n, xpScale); if (d > 0 && typeof LASTY !== 'undefined') LASTY[st] = GT; return d; }
   if (a?.gadget) {
-    const G = a.gadget, t = gadgets()[G.g] || 0; const room = Math.floor((GADGET_CAP - t) / GADGET_SEC); if (room <= 0) return 0;
-    const d = orig.call(this, st, a, Math.min(n, room), xpScale); if (!(d > 0)) return d;
-    gadgets()[G.g] = t + d * GADGET_SEC; if (!t) recalc(); return d;
+    const G = a.gadget, was = gadgetOn(G), room = GADGET_CAP - have(gid(G)); if (room <= 0) return 0;
+    const d = orig.call(this, st, a, Math.min(n, room), xpScale); if (d > 0 && !was) recalc(); return d;
   }
   return orig.apply(this, arguments);
 })(doYield);
 
 recalc4 = (orig => function () {
-  orig(); if (!S?.gadgets) return;
+  orig(); if (!S?.bank) return;
   for (const G of GADGETS) {
-    if (!(S.gadgets[G.g] > 0)) continue;
+    if (!gadgetOn(G)) continue;
     if (G.sts) for (const st of G.sts) { if (M.rate[st] !== undefined) M.rate[st] *= G.mult; if (M.tap?.[st] !== undefined) M.tap[st] *= G.mult; }
     if (G.dmg) M.dmg *= G.dmg; if (G.luck) M.luck *= G.luck;
   }
 })(recalc4);
 let GAD_T = 0;
 tickCore = (orig => function (dt) {
-  orig(dt); GAD_T += dt; if (GAD_T < 5) return; const s = GAD_T; GAD_T = 0;
-  const g = gadgets(); let flip = false;
-  for (const G of GADGETS) if (g[G.g] > 0) { g[G.g] = Math.max(0, g[G.g] - s); if (!g[G.g]) flip = true; }
+  orig(dt); GAD_T += dt; if (GAD_T < GADGET_SEC) return; const k = Math.floor(GAD_T / GADGET_SEC); GAD_T -= k * GADGET_SEC;
+  let flip = false;
+  for (const G of GADGETS) { const h = have(gid(G)); if (h > 0) { remove(gid(G), Math.min(h, k)); if (!have(gid(G))) flip = true; } }
   if (flip) recalc();
 })(tickCore);
+const gadgetTime = G => fmtTime(have(gid(G)) * GADGET_SEC - GAD_T);
 
 /* ---------- the Salvaging page ---------- */
 function salvPanel() {
   const keep = SALV_KEEP(), opts = [100, 1000, 10000, 100000];
-  const g = gadgets(), act = GADGETS.filter(G => g[G.g] > 0);
+  const act = GADGETS.filter(gadgetOn);
   const onYard = (UI.station?.archaeology || 'dig') === 'dig';
   const tgt = ACTIONS[S.target?.dig];
   let list = '';
@@ -187,7 +213,7 @@ function salvPanel() {
     ${onYard ? `<div class="row-btns">Default keep: ${opts.map(o => `<button class="btn small ${o === keep ? 'on' : ''}" data-act="salv-keep" data-v="${o}">${fmt(o)}</button>`).join('')}</div><small class="muted">Items a station is working with right now keep 10× the default unless you set them.</small>` : ''}
     ${list}
     <div class="salv-comps">${COMP_IDS.map(id => `<span class="salv-chip" title="${esc(ITEMS[id].name)}">${itemIcon(id)}<small data-count="${id}">${fmt(have(id))}</small></span>`).join('')}</div>
-    <div class="salv-gad">${act.length ? act.map(G => `<span class="gad-on">${G.emoji} <b>${G.name}</b> <small>${fmtTime(g[G.g])}</small></span>`).join('') : '<small class="muted">No gadgets running: build them at the Workshop.</small>'}</div></div>`;
+    <div class="salv-gad">${act.length ? act.map(G => `<span class="gad-on">${G.emoji} <b>${G.name}</b> ×${fmt(have(gid(G)))} <small>(${gadgetTime(G)})</small></span>`).join('') : '<small class="muted">No gadgets in the bank: build them at the Workshop.</small>'}</div></div>`;
 }
 let SSIG = { t: -9, v: '' };
 function salvSig() { if (Math.abs(GT - SSIG.t) < 2) return SSIG.v; const tg = ACTIONS[S.target?.dig]; SSIG = { t: GT, v: tg?.salv ? salvAll(tg.salv).map(r => r[2] > 0 ? 1 : 0).join('') : '' }; return SSIG.v; }
@@ -200,14 +226,23 @@ function salvItemModal(id) {
 }
 viewSkill = (orig => function () {
   let h = orig(); if (UI.skill !== 'archaeology') return h;
-  h = h.replace(/(<div class="list">)/, salvPanel() + '$1');
+  // the panel goes right above the action list (the list whose rows are actions), contraptions right below it
+  const re = /<div class="list">/g; let m, at = -1;
+  while ((m = re.exec(h))) { if (/data-act="target"/.test(h.slice(m.index, m.index + 400))) { at = m.index; break; } }
+  if (at >= 0) {
+    const onShop = (UI.station?.archaeology || 'dig') === 'restore';
+    let depth = 0, end = -1; const tag = /<\/?div\b[^>]*>/g; tag.lastIndex = at;
+    let t; while ((t = tag.exec(h))) { depth += t[0][1] === '/' ? -1 : 1; if (depth === 0) { end = tag.lastIndex; break; } }
+    if (onShop && end > 0) h = h.slice(0, end) + contrapPanel() + h.slice(end);
+    h = h.slice(0, at) + salvPanel() + h.slice(at);
+  }
   // each job says what it eats; each gadget what it does
   h = h.replace(/(data-act="target" data-st="dig" data-id="(sv_[a-z]+)">[\s\S]*?<span class="ar-main">[\s\S]*?<\/small>)/g, (m, all, id) => { const s = ACTIONS[id]?.salv; return s ? `${all}<span class="ar-loot">Eats ${s.what}</span>` : m; });
-  h = h.replace(/(data-act="target" data-st="restore" data-id="(wk_[a-z]+)">[\s\S]*?<span class="ar-main">[\s\S]*?<\/small>)/g, (m, all, id) => { const G = ACTIONS[id]?.gadget; return G ? `${all}<span class="ar-loot">${G.desc} · +1 min per build${gadgets()[G.g] ? ` · <b class="y">${fmtTime(gadgets()[G.g])} left</b>` : ''}</span>` : m; });
+  h = h.replace(/(data-act="target" data-st="restore" data-id="(wk_[a-z]+)">[\s\S]*?<span class="ar-main">[\s\S]*?<\/small>)/g, (m, all, id) => { const G = ACTIONS[id]?.gadget; return G ? `${all}<span class="ar-loot">Each one gives ${G.desc} for 1 minute; one is used up every minute while you have any${gadgetOn(G) ? ` · <b class="y">${fmt(have(gid(G)))} in the bank (${gadgetTime(G)})</b>` : ''}</span>` : m; });
   return h;
 })(viewSkill);
 VIEWS.skill = (orig => function () { return rebrand(orig()); })(viewSkill);
-viewSig = (orig => function () { return UI.view === 'skill' && UI.skill === 'archaeology' ? orig() + '|sv' + SALV_KEEP() + JSON.stringify(S.salvKeep || {}) + !!UI.salvAll + (S.target?.dig || '') + salvSig() + Object.values(gadgets()).map(t => t > 0 ? Math.ceil(t / 60) : 0).join() : orig(); })(viewSig);
+viewSig = (orig => function () { return UI.view === 'skill' && UI.skill === 'archaeology' ? orig() + '|sv' + SALV_KEEP() + JSON.stringify(S.salvKeep || {}) + !!UI.salvAll + (S.target?.dig || '') + salvSig() + GADGETS.map(G => gadgetOn(G) ? 1 : 0).join('') + JSON.stringify(S.house?.shrines || {}) + CONTRAP.map(c => have(c.c1) >= contrapCost(c, contrapLvl(c)).a ? 1 : 0).join('') : orig(); })(viewSig);
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-act^="salv-"]'); if (!t) return; const a = t.dataset.act;
   if (!['salv-keep', 'salv-item', 'salv-set', 'salv-all'].includes(a)) return; e.stopImmediatePropagation();
@@ -228,13 +263,14 @@ actInfo = function (id) {
   _actInfo77(id); const a = ACTIONS[id], box = $('#modal .act-info'); if (!box || !(a?.salv || a?.gadget)) return;
   const s = a.salv, G = a.gadget;
   box.insertAdjacentHTML('beforeend', s ? `<h3>How salvaging works</h3><p class="small">Eats ${s.what}, biggest pile first, only the amount above what you keep (tap items on the Salvage yard to set each one). With nothing spare it stands idle. Each job breaks down about 🪙${fmt(salvLoad())} worth and gives ${itemIcon(s.comp)} ${ITEMS[s.comp].name}: more for pricier junk. About 1 job in 15 turns up a damaged artefact for the Workshop.</p>`
-    : `<h3>Gadget</h3><p class="small">${G.desc}. Each build adds 1 minute (stacks up to 8 hours). Costs grow every 25 Salvaging levels.</p>`);
+    : `<h3>Gadget</h3><p class="small">Builds a ${G.name} into your bank. While you have any: ${G.desc}. One is used up every minute (stock up to ${GADGET_CAP}, 8 hours). Costs grow every 25 Salvaging levels.</p>`);
 };
 
 /* ---------- migration & boot ---------- */
 function migrateSalv() {
   const t = S.target || {}; if (t.dig && !ACTIONS[t.dig]?.salv) t.dig = 'sv_scrap';
   if (t.restore && !STATION_ACTIONS.restore.some(a => a.id === t.restore)) t.restore = 'wk_gather';
+  if (S.gadgets) { for (const G of GADGETS) { const n = Math.ceil((S.gadgets[G.g] || 0) / GADGET_SEC); if (n > 0) add(gid(G), Math.min(GADGET_CAP, n)); } delete S.gadgets; }
 }
 let SALV_LV = 0;
 tickCore = (orig => function (dt) { orig(dt); if ((LV.archaeology || 1) !== SALV_LV) { SALV_LV = LV.archaeology || 1; syncGadgetCost(); } })(tickCore);
@@ -249,4 +285,3 @@ css77.textContent = `.salv-panel .row-btns{margin:6px 0;gap:4px;align-items:cent
 document.head.appendChild(css77);
 
 function boot77() { boot76(); migrateSalv(); syncGadgetCost(); recalc(); UI.force = true; render(); }
-boot77();

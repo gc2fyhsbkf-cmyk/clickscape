@@ -10,7 +10,7 @@
 
 /* ---------- tunables (set by the pacing bot) ---------- */
 const SIG = { base: 6, exp: 0.3, powDiv: 1000, powE: { prod: 0.8, xp: 0.77, cxp: 0.8 }, essDiv: 5 };
-const TPOW = { prod: 2, xp: 1.6, cxp: 2 };   // per Transcendence
+const TPOW = { prod: 1.4, xp: 1.25, cxp: 1.4 };   // per Transcendence
 const APOW = { prod: 8, xp: 5, cxp: 8 };       // per Apotheosis
 const TRANS_T = { base: 4e4, growth: 40 };        // sigils needed to transcend
 const APO_T = { base: 150, growth: 8 };            // shards earned (this Apotheosis) needed
@@ -24,12 +24,15 @@ const capAsc = a => Math.round(90 * Math.log10(1 + a / 2.5)); // +13 for the fir
 const capTrans = t => t <= 10 ? 30 * t : Math.round(300 + 150 * Math.log10(t / 10));
 capBonus = function () {
   const a = S?.asc?.count || 0, t = tcount(), p = S?.trans?.perks?.caps || 0;
-  return Math.min(1999 - 120, capAsc(a) + capTrans(t) + 5 * p + 60 * apoCount() + 60 * (S?.apo?.perks?.heavens || 0));
+  // v9.57: caps no longer rise with ascensions, only with Transcendence (and its perks / Apotheosis)
+  return Math.min(1999 - 120, capTrans(t) + 5 * p + 60 * apoCount() + 60 * (S?.apo?.perks?.heavens || 0));
 };
+// v9.57: an ascension needs a share of your maximum total level that creeps up each ascension
+const ASC_F = { f0: 0.55, td: 0.08, step: 0.035, max: 0.92 };
+const ascFrac = c => Math.min(ASC_F.max, ASC_F.f0 + ASC_F.td * tcount() + ASC_F.step * c);
 ascReqCalc = function () {
-  const n = SKILL_ORDER.length, d = Math.min(30, (S.asc?.count || 0) + 10 * tcount());
-  const avgCap = SKILL_ORDER.reduce((a, k) => a + (MAX_LVL[k] || 99), 0) / n, pan = S?.trans?.perks?.pantheon || 0;
-  return Math.round(n * Math.min((30 + 20 * d) * (1 - 0.1 * pan), avgCap - 12 - 4 * pan));
+  const tot = SKILL_ORDER.reduce((a, k) => a + (MAX_LVL[k] || 99), 0), pan = S?.trans?.perks?.pantheon || 0;
+  return Math.round(tot * ascFrac(S.asc?.count || 0) * (1 - 0.05 * pan));
 };
 
 /* ================= SIGILS: the ascension currency ================= */
@@ -89,7 +92,7 @@ function automationTick() {
     }
     if (ok) { ascend(); closeModal(); if (!OFF) toast(`🌀 Auto-ascended (${fmt(S.asc.count)})`, 'rare', 2500); }
   }
-  if (S.apo?.perks?.autotrans && au.trans !== false && sigils() >= transTarget()) transcend2(true);
+  if (S.apo?.perks?.autotrans && au.trans !== false && shardGain() > 0) transcend2(true);
 }
 const OFF_BLOCK = () => !!S.chal?.id && !S.chal.failed; // never auto-ascend mid-challenge
 
@@ -113,8 +116,10 @@ tributeCoinsCalc = function () { return Math.max(750000, Math.round(0.1 * (S.sta
 transCostCalc = function () { return Math.max(5e6, Math.round(0.5 * (S.stats.earned || 0))); };
 
 /* ================= TRANSCENDENCE (eternity) ================= */
-const transTarget = () => Math.round(TRANS_T.base * Math.pow(TRANS_T.growth, tcount()) / Math.pow(2, S.apo?.perks?.heavens || 0));
-const shardGain = () => { const p = sigils(), tg = transTarget(); if (p < tg) return 0; return Math.floor(5 * Math.pow(p / tg, 0.4) * (1 + 0.25 * tcount()) * Math.pow(2, S.apo?.perks?.sigil || 0)); };
+// v9.57: a Transcendence needs a number of ascensions (10, then 15, 20…) in this Transcendence
+const transTarget = () => Math.max(3, Math.round((10 + 5 * tcount()) / Math.pow(2, S.apo?.perks?.heavens || 0)));
+const ascThisTD = () => S.asc?.count || 0;
+const shardGain = () => { const a = ascThisTD(), tg = transTarget(); if (a < tg) return 0; return Math.floor(5 * (1 + 0.2 * (a - tg)) * (1 + 0.25 * tcount()) * Math.pow(2, S.apo?.perks?.sigil || 0)); };
 // new Pantheon perks: automation & upgrades for unlocked systems
 [{ id: 'supply', icon: '🛒', name: 'Supply line', max: 1, cost: () => 2, desc: () => 'Unlocks auto-supply: skills top up cheap basic ingredients (never herbs or crops)', keep: true },
  { id: 'autoasc', icon: '🔁', name: 'Auto-ascend', max: 1, cost: () => 2, desc: () => 'Ascends for you whenever the requirement is met (pays triple coins if tribute materials are missing)', keep: true },
@@ -126,7 +131,7 @@ const shardGain = () => { const p = sigils(), tg = transTarget(); if (p < tg) re
 ].forEach(p => { if (!TRANS_PERKS.some(x => x.id === p.id)) TRANS_PERKS.push(p); });
 mktDepthCoins = (orig => function () { return orig() * [1, 2, 4][S.trans?.perks?.licence || 0]; })(mktDepthCoins);
 function transcend2(auto) {
-  const g = shardGain(); if (!g) { if (!auto) toast(`You need ${fmt(transTarget())} sigils to transcend.`, 'warn'); return; }
+  const g = shardGain(); if (!g) { if (!auto) toast(`You need ${fmt(transTarget())} ascensions this Transcendence to transcend (you have ${fmt(ascThisTD())}).`, 'warn'); return; }
   if (S.coins < transCost()) { if (!auto) { closeModal(); toast(`✴️ Transcending needs an offering of 🪙${fmt(transCost())}.`, 'warn', 6000); } return; }
   const old = S, T = old.trans || { count: 0, shards: 0, perks: {} };
   T.count++; T.shards += g; T.earned = (T.earned || 0) + g; T.lastGain = g; T.best = Math.max(T.best || 0, g);
@@ -143,16 +148,16 @@ function transcend2(auto) {
   ensureTargets(); applyCaps(); refreshLevels(); recalc(); save();
   if (auto) { if (!OFF) toast(`✴️ Auto-transcended (+${fmt(g)} shards)`, 'rare', 3000); return; }
   closeModal(); go('transcend'); burst(); SFX.play('pet');
-  openModal(`<div class="item-modal"><h2>✴️ Transcendence ${fmt(T.count)}!</h2><p>Everything returns to dust… except you. You gain <b class="y">${fmt(g)}</b> divine shards (${fmt(T.shards)} to spend).</p><p class="small">Next Transcendence needs <b>${fmt(transTarget())}</b> sigils. Pushing past the target earns more shards.</p><button class="btn big" data-act="close">Begin again</button></div>`);
+  openModal(`<div class="item-modal"><h2>✴️ Transcendence ${fmt(T.count)}!</h2><p>Everything returns to dust… except you. You gain <b class="y">${fmt(g)}</b> divine shards (${fmt(T.shards)} to spend).</p><p class="small">Your next Transcendence needs <b>${fmt(transTarget())}</b> ascensions. Level caps rose by +${capTrans(T.count) - capTrans(T.count - 1)}. Each ascension past the requirement adds +20% shards.</p><button class="btn big" data-act="close">Begin again</button></div>`);
 }
 transcend = function () { transcend2(false); };
 viewTranscend = function () {
-  const T = S.trans || { count: 0, shards: 0, perks: {} }, p = sigils(), tg = transTarget(), ok = p >= tg, pct = Math.min(100, 100 * Math.log10(1 + p) / Math.log10(1 + tg));
-  return subHead('✴️ Transcendence', 'ascension') + `<div class="panel glow"><p>Transcending resets <b>everything</b>: levels, items, coins, ascensions, sigils, essence, house, quests and diaries. You keep pets, the collection log, achievements, the museum, your ship and the Pantheon.</p>
-      <div class="stats"><div>Transcendences</div><b>${fmt(T.count)}</b><div>Divine shards</div><b class="y">${fmt(T.shards)}</b><div>Sigils</div><b>${fmt(p)} / ${fmt(tg)}</b><div>Next level caps</div><b>+${capTrans(T.count + 1) - capTrans(T.count)}</b></div>
+  const T = S.trans || { count: 0, shards: 0, perks: {} }, p = ascThisTD(), tg = transTarget(), ok = p >= tg, pct = Math.min(100, 100 * p / tg);
+  return subHead('✴️ Transcendence', 'ascension') + `<div class="panel glow"><p>Transcending resets <b>everything</b>: levels, items, coins, ascensions, sigils, essence, house, quests and diaries, and it is the only way to raise your level caps. You keep pets, the collection log, achievements, the museum, your ship and the Pantheon.</p>
+      <div class="stats"><div>Transcendences</div><b>${fmt(T.count)}</b><div>Divine shards</div><b class="y">${fmt(T.shards)}</b><div>Ascensions this Transcendence</div><b>${fmt(p)} / ${fmt(tg)}</b><div>Next level caps</div><b>+${capTrans(T.count + 1) - capTrans(T.count)}</b></div>
       <div class="voy-bar"><div class="voy-fill" style="width:${pct}%"></div></div>
-      <button class="btn big ${ok ? 'danger' : 'disabled'}" data-act="trans2">${ok ? `Transcend for ${fmt(shardGain())} shards…` : `Needs ${fmt(tg)} sigils`}</button>
-      <p class="small muted">Shards grow with how far past the target you push (×2 sigils ≈ +32% shards).</p></div>
+      <button class="btn big ${ok ? 'danger' : 'disabled'}" data-act="trans2">${ok ? `Transcend for ${fmt(shardGain())} shards…` : `Needs ${fmt(tg)} ascensions`}</button>
+      <p class="small muted">Each ascension past the requirement adds +20% shards.</p></div>
     <div class="panel"><h3>✴️ The Pantheon <small class="muted">· kept through Transcendence</small></h3>
       ${TRANS_PERKS.map(pk => { const l = T.perks[pk.id] || 0, max = l >= pk.max; return `<div class="upg ${l ? 'got' : ''}"><div class="upg-icon">${pk.icon}</div><div class="upg-main"><b>${pk.name} ${l}/${pk.max}</b><small>${pk.desc(Math.max(1, l))}</small></div>
         ${max ? '<span class="y">MAX</span>' : `<button class="btn ${T.shards < pk.cost(l) ? 'poor' : ''}" data-act="tperk" data-id="${pk.id}">${pk.cost(l)} ✴️</button>`}</div>`; }).join('')}</div>
@@ -162,7 +167,8 @@ VIEWS.transcend = (orig => function () { return rebrand(orig()); })(viewTranscen
 
 /* ================= APOTHEOSIS (third tier) ================= */
 const apoTarget = () => Math.round(APO_T.base * Math.pow(APO_T.growth, apoCount()));
-const divGain = () => { const e = S.trans?.earned || 0, tg = apoTarget(); if (e < tg) return 0; return Math.floor(2 * Math.pow(e / tg, 0.4) * (1 + 0.3 * apoCount())); };
+const APO_TD = 20; // Apotheosis needs this many Transcendences
+const divGain = () => { const e = S.trans?.earned || 0, tg = apoTarget(); if (e < tg || tcount() < APO_TD) return 0; return Math.floor(2 * Math.pow(e / tg, 0.4) * (1 + 0.3 * apoCount())); };
 const APO_PERKS = [
   { id: 'omni', icon: '☀️', name: 'Omnipotence', max: 20, cost: l => 1 + l, desc: l => `All production & XP ×${fmt(Math.pow(2, l))}` },
   { id: 'engine', icon: '⚙️', name: 'Eternal engine', max: 10, cost: l => 1 + l, desc: l => `Echo engine ×${fmt(Math.pow(10, l))}` },
@@ -173,7 +179,7 @@ const APO_PERKS = [
 ];
 const apoPerk = id => S.apo?.perks?.[id] || 0;
 function apotheosis() {
-  const g = divGain(); if (!g) return toast(`You need ${fmt(apoTarget())} shards earned this Apotheosis.`, 'warn');
+  const g = divGain(); if (!g) return toast(`Apotheosis needs ${APO_TD} Transcendences and ${fmt(apoTarget())} shards earned this Apotheosis.`, 'warn');
   const old = S, A = old.apo || { count: 0, div: 0, perks: {} };
   A.count++; A.div += g;
   const keepTP = {}; for (const pk of TRANS_PERKS) if (pk.keep && old.trans?.perks?.[pk.id]) keepTP[pk.id] = old.trans.perks[pk.id];
@@ -188,13 +194,13 @@ function apotheosis() {
 function apoPanel() {
   const e = S.trans?.earned || 0, tg = apoTarget(), A = S.apo || { count: 0, div: 0 };
   if (!tcount() && !apoCount()) return '';
-  return `<div class="panel row-between"><div><b>☀️ Apotheosis ${A.count ? `· ${A.count}` : ''}</b><br><small class="muted">${e >= tg ? `Ready for ${fmt(divGain())} divinity!` : `Earn ${fmt(tg)} shards this Apotheosis (${fmt(e)} so far)`} · resets Transcendences</small></div><button class="btn" data-nav="apotheosis">Open</button></div>`;
+  return `<div class="panel row-between"><div><b>☀️ Apotheosis ${A.count ? `· ${A.count}` : ''}</b><br><small class="muted">${divGain() ? `Ready for ${fmt(divGain())} divinity!` : `Needs ${APO_TD} Transcendences (${tcount()}) and ${fmt(tg)} shards earned (${fmt(e)})`} · resets Transcendences</small></div><button class="btn" data-nav="apotheosis">Open</button></div>`;
 }
 function viewApotheosis() {
-  const A = S.apo || { count: 0, div: 0, perks: {} }, e = S.trans?.earned || 0, tg = apoTarget(), ok = e >= tg;
+  const A = S.apo || { count: 0, div: 0, perks: {} }, e = S.trans?.earned || 0, tg = apoTarget(), ok = divGain() > 0;
   return subHead('☀️ Apotheosis', 'transcend') + `<div class="panel glow"><p>Apotheosis resets your <b>Transcendences, shards and Pantheon</b> (automation perks are kept) for divinity, the power of a god.</p>
     <div class="stats"><div>Apotheoses</div><b>${A.count}</b><div>Divinity</div><b class="y">${fmt(A.div)}</b><div>Shards earned</div><b>${fmt(e)} / ${fmt(tg)}</b><div>Power per Apotheosis</div><b>×${fmt(APOW.prod)}</b></div>
-    <button class="btn big ${ok ? 'danger' : 'disabled'}" data-act="apo">${ok ? `Apotheosis for ${fmt(divGain())} divinity…` : `Needs ${fmt(tg)} shards earned`}</button></div>
+    <button class="btn big ${ok ? 'danger' : 'disabled'}" data-act="apo">${ok ? `Apotheosis for ${fmt(divGain())} divinity…` : `Needs ${APO_TD} Transcendences (${tcount()}) and ${fmt(tg)} shards earned`}</button></div>
     <div class="panel"><h3>☀️ Divine perks <small class="muted">· permanent forever</small></h3>${APO_PERKS.map(pk => { const l = A.perks?.[pk.id] || 0, max = l >= pk.max; return `<div class="upg ${l ? 'got' : ''}"><div class="upg-icon">${pk.icon}</div><div class="upg-main"><b>${pk.name} ${l}/${pk.max}</b><small>${pk.desc(Math.max(1, l))}</small></div>
       ${max ? '<span class="y">MAX</span>' : `<button class="btn ${A.div < pk.cost(l) ? 'poor' : ''}" data-act="aperk" data-id="${pk.id}">${pk.cost(l)} ☀️</button>`}</div>`; }).join('')}</div>`;
 }
@@ -208,11 +214,11 @@ viewAscension = (orig => function () {
   if (apoPerk('autotrans')) { /* shown on the transcend page */ }
   const panel = `<div class="panel small sigil-panel"><div class="row-between"><b>🔆 ${fmt(p)} sigils</b><small>production ×${fmt(sigilPow('prod'))} · XP ×${fmt(sigilPow('xp'))}</small></div>
     <small>Next ascension: <b>+${fmt(sigilGain())}</b> sigils${r ? ` · ⚙️ engine +${fmtD(r)}/s (≈${fmtD(r / Math.max(1, S.engine.lastGain || 1))} ascensions/s)` : ''}</small>
-    <div class="voy-bar"><div class="voy-fill" style="width:${Math.min(100, 100 * Math.log10(1 + p) / Math.log10(1 + tg))}%"></div></div><small class="muted">✴️ Transcendence at ${fmt(tg)} sigils · tier power ×${fmt(tierPow('prod') / sigilPow('prod'))}</small>
+    <div class="voy-bar"><div class="voy-fill" style="width:${Math.min(100, 100 * ascThisTD() / tg)}%"></div></div><small class="muted">✴️ Transcendence at ${fmt(tg)} ascensions (${fmt(ascThisTD())} so far) · tier power ×${fmt(tierPow('prod') / sigilPow('prod'))}</small>
     ${toggles ? `<div class="chips">${toggles}</div>` : ''}</div>`;
   return orig().replace(/<div class="panel small depth-note">[\s\S]*?<\/div>/, '')
     .replace(/gain <b class="y">\+[^<]*<\/b> (runes|sigils) (&amp;|&) essence/, `gain <b class="y">+${fmt(sigilGain())}</b> sigils & <b class="y">+${fmt(Math.max(1, Math.floor(ascendGain() / SIG.essDiv)))}</b> essence`)
-    .replace('raises level caps by 6 (Transcendence adds +60 more each time)', `raises level caps (next: +${capAsc((S.asc.count || 0) + 1) - capAsc(S.asc.count || 0)}; each one adds a little less, Transcendence adds lots more)`)
+    .replace('raises level caps by 6 (Transcendence adds +60 more each time)', `doesn't raise level caps (only Transcendence does: +${capTrans(tcount() + 1) - capTrans(tcount())} next)`)
     .replace(/<div class="panel row-between"><div><b>✴️ Transcendence<\/b>[\s\S]*?<\/button><\/div>/, `<div class="panel row-between"><div><b>✴️ Transcendence</b><br><small class="muted">${p >= tg ? 'Ready! A deeper reset for divine shards.' : `At ${fmt(tg)} sigils (${fmt(p)} now)`}</small></div><button class="btn" data-nav="transcend">Open</button></div>`)
     .replace('<div class="ctabs asc-tabs">', panel + '<div class="ctabs asc-tabs">');
 })(viewAscension);

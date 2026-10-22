@@ -125,7 +125,7 @@ const BANK_GROUPS = [
   ['jewel', '📿 Jewellery & capes', it => ['neck', 'ring', 'cape'].includes(it.slot) && !it.cosmetic],
   ['cosm', '✨ Cosmetics', it => it.cosmetic],
   ['drop', '🦴 Bones, hides & drops', it => it.cat === 'drop'],
-  ['arch', '🏺 Archaeology', it => it.cat === 'arch'],
+  ['arch', '♻️ Salvaging', it => it.cat === 'arch'],
   ['misc', '📦 Other', () => true],
 ];
 function bankGroupOf(it) { for (const g of BANK_GROUPS) { try { if (g[2](it)) return g[0]; } catch (e) { } } return 'misc'; }

@@ -161,16 +161,16 @@ openMonsterInfo = (orig => function (id) {
 recalc4 = (orig => function () {
   orig(); if (!S.asc) return;
   const tp = S.trans?.perks || {};
-  M.xp *= 1 / (1 + 0.06 * (S.asc.count || 0)) * Math.pow(1.5, tp.wisdom || 0);
+  M.xp *= 1 / (1 + 0.06 * (S.asc.count || 0)) * Math.pow(1.25, tp.wisdom || 0);
   // pets: +1% XP and luck each
   const n = Object.keys(S.pets).length; M.xp *= 1 + 0.01 * n; M.luck *= 1 + 0.01 * n;
   if (S.pets.phoenix) M.rate.fire *= 1.05; if (S.pets.tiny_tempor) M.rate.fish *= 1.05; if (S.pets.smolcano) M.rate.mine *= 1.05;
   // void
   const v = voidStyle(); if (v && v.s === wclass()) { M.capeAcc *= 1.1; M.dmg *= (v.s === 'ranged' ? 1.125 : 1.1) * (v.elite ? 1.05 : 1); }
   // transcendence
-  for (const st of STATION_ORDER) { const f = Math.pow(2, tp.haste || 0); M.rate[st] *= f; M.tap[st] *= f; }
+  for (const st of STATION_ORDER) { const f = Math.pow(1.5, tp.haste || 0); M.rate[st] *= f; M.tap[st] *= f; }
   M.luck *= Math.pow(1.4, tp.fortune || 0); M.dmg *= Math.pow(1.4, tp.war || 0); M.sell *= Math.pow(1.3, tp.midas || 0);
-  if (tp.runes) { const f = (1 + 0.05 * S.asc.points * (1 + tp.runes)) / (1 + 0.05 * S.asc.points); for (const st of STATION_ORDER) { M.rate[st] *= f; M.tap[st] *= f; } }
+  if (tp.runes) { const f = 1 + 0.25 * tp.runes; for (const st of STATION_ORDER) { M.rate[st] *= f; M.tap[st] *= f; } }
 })(recalc4);
 const ascReqMult = () => 1 - 0.1 * (S?.trans?.perks?.pantheon || 0);
 capBonus = (orig => function () { return orig() + 5 * (S?.trans?.perks?.caps || 0); })(capBonus);
@@ -192,9 +192,9 @@ ascend = (orig => function () {
 /* ================= TRANSCENDENCE ================= */
 const TRANS_REQ = 10;
 const TRANS_PERKS = [
-  { id: 'haste', icon: '⚡', name: 'Godly Haste', max: 5, cost: l => 1 + l, desc: l => `All production ×${Math.pow(2, l)}` },
-  { id: 'wisdom', icon: '📜', name: 'Divine Wisdom', max: 5, cost: l => 1 + l, desc: l => `All XP ×${fmtD(Math.pow(1.5, l))}` },
-  { id: 'runes', icon: '🌀', name: 'Eternal Runes', max: 3, cost: l => 2 + l, desc: l => `Ancient Runes ${l + 1}× as strong` },
+  { id: 'haste', icon: '⚡', name: 'Godly Haste', max: 5, cost: l => 1 + l, desc: l => `All production ×${fmtD(Math.pow(1.5, l))}` },
+  { id: 'wisdom', icon: '📜', name: 'Divine Wisdom', max: 5, cost: l => 1 + l, desc: l => `All XP ×${fmtD(Math.pow(1.25, l))}` },
+  { id: 'runes', icon: '🌀', name: 'Eternal Engines', max: 3, cost: l => 2 + l, desc: l => `All production +${25 * l}%` },
   { id: 'war', icon: '⚔️', name: 'Avatar of War', max: 5, cost: l => 1 + l, desc: l => `Damage ×${fmtD(Math.pow(1.4, l))}` },
   { id: 'fortune', icon: '🍀', name: 'Treasure of the Gods', max: 5, cost: l => 1 + l, desc: l => `Rare drops ×${fmtD(Math.pow(1.4, l))}` },
   { id: 'midas', icon: '🪙', name: 'Midas Touch', max: 3, cost: l => 1 + l, desc: l => `Sell prices ×${fmtD(Math.pow(1.3, l))} · start with 🪙${fmt([0, 1e6, 2e7, 5e8][l])}` },

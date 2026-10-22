@@ -11,7 +11,7 @@ relicPanel = (orig => function () {
 })(relicPanel);
 
 /* ---------- Transcendence & Apotheosis stay mysterious until you're close ---------- */
-const transRevealed = () => tcount() > 0 || apoCount() > 0 || sigils() >= 0.25 * transTarget() || lifeAsc() >= 8;
+const transRevealed = () => tcount() > 0 || apoCount() > 0 || (S.asc?.count || 0) >= 3 || lifeAsc() >= 8;
 const apoRevealed = () => apoCount() > 0 || (S.trans?.earned || 0) >= 0.25 * apoTarget();
 const teaser = (icon, name, hint) => `<div class="panel row-between locked-feature"><div><b>${icon} ${name}</b><br><small class="muted">${hint}</small></div><button class="btn disabled" disabled>🔒</button></div>`;
 viewAscension = (orig => function () {

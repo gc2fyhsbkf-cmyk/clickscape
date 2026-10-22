@@ -30,7 +30,7 @@ const XP_TABLE = [0, 0];
 function levelOf(xp, cap = 99) { let l = 1; while (l < cap && xp >= XP_TABLE[l + 1]) l++; return l; }
 
 /* ---------- State ---------- */
-const SAVE_KEY = 'clickscape_save_v1';
+const SAVE_KEY = 'clickscape_save_v2'; // v9.57: new progression loop, fresh start
 let S;            // saved state
 let LV = {};      // cached levels
 let OFF = false;  // offline simulation running

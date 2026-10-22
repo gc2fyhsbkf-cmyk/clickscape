@@ -7,7 +7,7 @@
 /* ================= AUTO TABS ================= */
 const AUTO_TABS = [
   ['metal', '⛏️ Ores & bars'], ['wood', '🌲 Logs & planks'], ['food', '🐟 Food & fish'], ['farm', '🌱 Farming & herbs'], ['potion', '🧪 Potions'],
-  ['gear', '⚔️ Gear & ammo'], ['tool', '🛠️ Tools'], ['craft', '💎 Gems, runes & crafting'], ['drop', '🦴 Bones & drops'], ['arch', '🏺 Archaeology'],
+  ['gear', '⚔️ Gear & ammo'], ['tool', '🛠️ Tools'], ['craft', '💎 Gems, runes & crafting'], ['drop', '🦴 Bones & drops'], ['arch', '♻️ Salvaging'],
   ['box', '📦 Boxes & clues'], ['look', '👗 Cosmetics'], ['other', '❔ Other'],
 ];
 bankCat = function (it) {
