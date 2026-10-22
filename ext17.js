@@ -65,7 +65,7 @@ ascend = (orig => function () {
   const old = S, n = S.asc.count; orig();
   if (S === old || S.asc.count === n) return;
   S.autoSupply = old.autoSupply; const k = giveKit(); recalc(); save();
-  setTimeout(() => toast(`🎒 Starter kit: ${Object.keys(k.items).length} items and 🪙${fmt(k.coins)} to kick off the run.`, 'rare', 5000), 800);
+  if (Object.keys(k.items).length || k.coins) setTimeout(() => toast(`🎒 Starter kit: ${Object.keys(k.items).length} items and 🪙${fmt(k.coins)} to kick off the run.`, 'rare', 5000), 800);
 })(ascend);
 transcend = (orig => function () { const t0 = S.trans?.count || 0; orig(); if ((S.trans?.count || 0) > t0) { giveKit(); recalc(); save(); } })(transcend);
 

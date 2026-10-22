@@ -105,7 +105,7 @@ function salvYield(st, a, n, xpScale = 1) {
   }
   // nothing spare: the yard stands idle (no components, no XP)
   const done = n - left; if (done <= 0) { SALV_LAST[a.id] = { took: {}, comps: 0, t: GT, idle: true }; return 0; }
-  add(s.comp, comps); gainXP('archaeology', xp * (xpScale ?? 1));
+  if (s.herbOut) s.herbOut(comps); else add(s.comp, comps); gainXP('archaeology', xp * (xpScale ?? 1));
   track('yield', st, done); track('act', a.id, done);
   SALV_LAST[a.id] = { took, comps, t: GT };
   S.lifetime.salvaged = (S.lifetime.salvaged || 0) + Object.values(took).reduce((x, y) => x + y, 0);

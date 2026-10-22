@@ -89,7 +89,7 @@ giveKit = (orig => function () {
 })(giveKit);
 ascend = (orig => function () {
   const old = S, n = S.asc.count; orig(); if (S === old || S.asc.count === n || OFF) return;
-  const g = (S.kitGear || []).map(id => ITEMS[id].name);
+  const g = (S.kitGear || []).map(id => ITEMS[id].name); if (!g.length) return;
   setTimeout(() => toast(`🎒 Ascension starter kit added to your bank${g.length ? `: ${g.join(', ')}. Gear equips itself once your levels allow` : ''}.`, 'pet', 12000), 1200);
 })(ascend);
 transcend2 = (orig => function (auto) { const t0 = tcount(); orig(auto); if (tcount() > t0) { giveKit(); recalc(); } })(transcend2);

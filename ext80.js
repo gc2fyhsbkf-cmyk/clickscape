@@ -141,7 +141,7 @@ function boonOfferPanel() {
   if (!S.boonOffer?.length) return '';
   return `<div class="panel glow boon-offer"><h3>🌟 Choose a boon <small class="muted">· lasts for the rest of this Transcendence</small></h3><div class="boon-cards">${S.boonOffer.map(id => { const b = BOON_BY[id], f = BOON_FAM[b.fam], c = famCount(b.fam);
     return `<button class="boon-card rar-${b.rar}" data-act="boon-pick" data-id="${id}"><span class="bc-icon">${b.icon}</span><b>${b.name}</b>${rarTag(b.rar)}<small>${b.txt}${boonPow() > 1 ? ' (×1.5)' : ''}</small><small class="muted">${f.icon} ${f.name} ${c}/${(famSets(b.fam) + 1) * 5} to set ${famSets(b.fam) + 1}</small></button>`; }).join('')}</div>
-    ${S.boonReroll ? '<button class="btn small" data-act="boon-reroll">🎲 Reroll (1 free)</button>' : ''}</div>`;
+    ${S.boonReroll ? `<button class="btn small" data-act="boon-reroll">🎲 Reroll (${S.boonReroll} free)</button>` : ''}</div>`;
 }
 function boonListPanel() {
   const own = Object.entries(boons()); if (!own.length && !S.boonOffer?.length) return '';
@@ -179,7 +179,7 @@ document.addEventListener('click', e => {
   const t = e.target.closest('[data-act="boon-pick"],[data-act="boon-reroll"],[data-act="edict-pick"]'); if (!t) return; e.stopImmediatePropagation();
   const a = t.dataset.act;
   if (a === 'boon-pick') pickBoon(t.dataset.id);
-  else if (a === 'boon-reroll') { if (S.boonReroll) { rollBoons(); S.boonReroll = 0; } }
+  else if (a === 'boon-reroll') { if (S.boonReroll > 0) { const left = S.boonReroll - 1; rollBoons(); S.boonReroll = left; } }
   else pickEdict(t.dataset.id);
   SFX.play?.('ach'); UI.force = true; render();
 }, true);

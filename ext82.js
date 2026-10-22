@@ -37,6 +37,26 @@ function shiftId(id, add, maxLv = Infinity) {
   return best;
 }
 
+/* ---------- combat loot is better than smithed: gear drops roll quality ---------- */
+// every weapon/armour piece from a monster, chest or casket rolls a quality (Fine ×1.1 … Legendary ×2) far more
+// often than the anvil does; bosses roll better still
+const COMBAT_Q = [0, 0.45, 0.22, 0.06, 0.008];
+let KILL_M = null;
+killMonster = (orig => function (m) { KILL_M = m; try { return orig.apply(this, arguments); } finally { KILL_M = null; } })(killMonster);
+function combatQ(id) {
+  const boss = !!KILL_M?.boss, k = Math.min(1.5, Math.sqrt(M.luck || 1));
+  const odds = COMBAT_Q.map((p, t) => t ? Math.min(0.6, p * k * (boss && t >= 2 ? 1.6 : 1)) : 0);
+  const t = rollQ(odds); if (!t) return id;
+  const qid = qItem(id, t), Q = QUAL[t];
+  if (!OFF && t >= 2) setTimeout(() => { if (t >= 3 && typeof fanLegend === 'function') fanLegend({ kind: `${t >= 4 ? '🔶 LEGENDARY' : '🟣 MASTERWORK'} DROP`, icon: itemIcon(qid), name: ITEMS[qid].name, sub: `Stats ×${Q.k}` }); else if (typeof fanBanner === 'function') fanBanner(itemIcon(qid), `${Q.n} drop!`, `${ITEMS[qid].name} · stats ×${Q.k}`); }, 400);
+  return qid;
+}
+maybeQ = function (id, q) { return q === 1 && qCapable(id) && !String(id).includes('__q') ? combatQ(id) : id; };
+add = (orig => function (id, n = 1) {
+  if (IN_DROP && !IN_RARE && n === 1 && qCapable(id) && !String(id).includes('__q')) { const qid = combatQ(id); IN_RARE = true; try { return orig(qid, 1); } finally { IN_RARE = false; } }
+  return orig.apply(this, arguments);
+})(add);
+
 /* ---------- the Fourth-age crowbar: an elite clue treasure ---------- */
 item('fourth_age_crowbar', '4th age crowbar', 1500000000, { cat: 'tool', kind: 'mattock', slot: 'mattock', tint: '#e8e8f0', trim: '#e8c030', mult: 14, req: { archaeology: 70 }, rare: true, untradeable: false,
   desc: 'A crowbar from an age not yet begun. The best salvaging tool short of the high tiers.' });
@@ -95,11 +115,14 @@ const monTier = m => Math.max(0, Math.min(tcount(), S?.monTier?.[m.id] ?? tcount
 const tierAdd = V => capTrans(V);
 var TIER_K = 0.25; // monster stat growth per 30 levels of cap
 const tierFactor = (m, V) => 1 + TIER_K * (V === tcount() ? capBonus() : tierAdd(V)) / 30;
-// materials climb the full cap increase. Gear and tools climb together, keeping their order, but the best
-// piece on a table stays at least ~50 levels under what you can smith at that tier, so drops never
-// out-class the anvil (a TD6 Greater demon tops out at Divine, while you can smith Eternal)
+// materials climb the full cap increase. Gear and tools climb together, keeping their order, up to a ceiling
+// set by how strong the monster is: bosses, region champions and level-150+ monsters can drop your top
+// smithable tier; mid monsters stop one big step below it; weak ones two. Combat drops also roll quality
+// (see below), so a boss's drop beats what the anvil makes, while a farmed Greater demon doesn't hand out
+// the best gear in the game.
+const gearCeil = (m, add) => 120 + add - (m.boss || champSet.has(m.id) || m.lvl >= 150 ? 0 : m.lvl >= 50 ? 50 : 100);
 function tierDrops(m, V) {
-  const add = tierAdd(V), maxGear = 120 + add - 50;
+  const add = tierAdd(V), maxGear = gearCeil(m, add);
   const top = Math.max(0, ...m.d0.filter(d => ITEMS[d[0]]?.slot && famOf(d[0])).map(d => famOf(d[0]).lv));
   const gearAdd = Math.max(0, Math.min(add, maxGear - top));
   const out = [], seen = {};
@@ -149,4 +172,3 @@ css82.textContent = `.mtier{color:#c8a0ff;font-size:.8em;font-weight:700}.mon-ti
 document.head.appendChild(css82);
 
 function boot82() { boot81(); applyBossScale(); recalc(); UI.force = true; render(); }
-boot82();
