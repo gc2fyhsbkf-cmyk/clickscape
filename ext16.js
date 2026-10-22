@@ -54,7 +54,7 @@ for (const it of Object.values(ITEMS)) {
 }
 const RB = [
   // skills & core terms
-  ['Hitpoints', 'Vitality'], ['Herblore', 'Herbalism'], ['Runecrafting', 'Glyphcraft'], ['Runecrafter', 'Glyphcrafter'], ['Construction', 'Carpentry'], ['Archaeology', 'Excavation'], ['Slayer', 'Bounty'],
+  ['Hitpoints', 'Vitality'], ['Herblore', 'Herbalism'], ['Runecrafting', 'Glyphcraft'], ['Runecrafter', 'Glyphcrafter'], ['Construction', 'Carpentry'], ['Archaeology', 'Salvaging'], ['Excavation', 'Salvaging'], ['Slayer', 'Bounty'],
   ['Grand Exchange', 'Trading Post'], ['Run bounties', 'Run goals'], ['Mithril', 'Bluesteel'], ['Adamant Dragon', 'Ancient Dragon'], ['Rune Dragon', 'Volcanic Dragon'], ['Adamantite', 'Ancient'], ['Runite', 'Volcanic'], ['Ancient Runes', 'Ascension Sigils'], ['Ancient Magicks', 'Elder Magicks'],
   // gods, factions & places
   ['Saradomin', 'Solarion'], ['Zamorak', 'Zarvok'], ['Bandos', 'Gorath'], ['Armadyl', 'Aviel'], ['Guthix', 'Verdant'], ['Zaros', 'Nyxar'], ['God Wars', 'Divine War'], ['GWD', 'Divine War'],

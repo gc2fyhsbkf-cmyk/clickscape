@@ -73,7 +73,7 @@ doYield = (orig => function (st, a, n, xpScale = 1) {
 })(doYield);
 // the action list says when you're past a recipe
 viewSkill = (orig => function () {
-  const sk = UI.skill; return orig().replace(/(data-act="target" data-st="[a-z_]+" data-id="([a-z0-9_]+)">[\s\S]*?Lv \d+ · )([\d.,]+ xp)/g, (m, pre, id, xp) => { const a = ACTIONS[id]; const f = a ? xpFall(LV[sk] || 1, a.lvl) : 1; return f < 0.99 ? `${pre}${xp} <span class="xp-fall">×${Math.round(f * 100)}%</span>` : m; });
+  const sk = UI.skill; return orig().replace(/(data-act="target" data-st="[a-z_]+" data-id="([a-z0-9_]+)">[\s\S]*?Lv \d+ · )([\d.,]+ xp)/g, (m, pre, id, xp) => { const a = ACTIONS[id]; const f = a && !a.salv ? xpFall(LV[sk] || 1, a.lvl) : 1; return f < 0.99 ? `${pre}${xp} <span class="xp-fall">×${Math.round(f * 100)}%</span>` : m; });
 })(viewSkill);
 VIEWS.skill = (orig => function () { return rebrand(orig()); })(viewSkill);
 

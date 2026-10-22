@@ -147,7 +147,7 @@ function viewSkill() {
       </div>
     </div>
     ${st === 'mine' ? starPanel() : ''}${toolRow}${metalChips}${st === 'restore' ? museumPanel() : ''}
-    ${st === 'dig' ? '<div class="panel small muted">⛏️ Excavating gives materials and sometimes a <b>damaged artifact</b>. Restore it at the <b>Restoration bench</b> tab using materials from the same site, then donate a full set to the Museum.</div>' : ''}
+    
     <div class="list">${rows}</div>
     ${st === 'dig' ? museumPanel() : ''}${st === 'course' ? gracefulPanel() : ''}${st === 'thieve' ? roguePanel() : ''}`;
 }
@@ -295,7 +295,7 @@ function openMonsterInfo(id) {
     <button class="btn big" data-act="mon-go" data-id="${m.id}">Fight ${m.name}</button></div>`);
 }
 function museumPanel() {
-  return `<div class="panel museum"><h3>🏛️ Museum</h3><p class="muted small">Restore damaged artifacts at the Restoration bench, then donate one of each artifact from a dig site here. Each finished collection gives a permanent bonus that survives Ascension.</p>
+  return `<div class="panel museum"><h3>🏛️ Museum</h3><p class="muted small">Salvaging turns up damaged artefacts now and then: restore them at the Workshop, then donate one of each artefact from a set here. Each finished collection gives a permanent bonus that survives Ascension.</p>
   ${DIGSITES.map(d => {
     const done = S.museum[d.id];
     const can = !done && d.arts.every(([id]) => have(id) > 0);
@@ -365,7 +365,7 @@ function itemDesc(it) {
   if (it.mult) b.push(`Tool power ×${it.mult}`);
   if (it.req) b.push(`Requires ${reqText(it.req)}`);
   if (it.heal) b.push(`Heals ${it.heal}`);
-  if (it.cat === 'arch' && it.kind === 'artifact') b.push(it.id.startsWith('damaged_') ? 'Restore it at Archaeology → Restoration bench, using materials from the same dig site.' : 'Donate one of each artifact from a site at Archaeology → Museum (on the Dig site and Restoration tabs) for a permanent bonus, or sell it.');
+  if (it.cat === 'arch' && it.kind === 'artifact') b.push(it.id.startsWith('damaged_') ? 'Restore it at Salvaging → Workshop, using salvaged components.' : 'Donate one of each artifact from a site at Salvaging → Museum (on the Salvage yard and Workshop tabs) for a permanent bonus, or sell it.');
   if (it.clue) b.push('Read it to start a treasure trail.');
   if (it.lamp) b.push('Rub it for XP in a skill of your choice.');
   if (it.open) b.push('Can be opened.');

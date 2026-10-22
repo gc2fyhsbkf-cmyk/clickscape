@@ -1,4 +1,5 @@
 'use strict';
+function fmtRange(lo, hi) { return lo === hi ? fmt(lo) : `${fmt(lo)}–${fmt(hi)}`; }
 /* =========================================================
    CLICKSCAPE v9.46 — every skill action explains itself (ⓘ: what it needs, makes and can drop,
    with loot tables for thieving, implings and crates), loot previews on thieving & impling rows,
@@ -44,7 +45,7 @@ function lootRows(a) {
   const out = [];
   if (a.thieve) {
     const t = a.thieve;
-    if (t.coins) out.push(`<div class="ai-row plain"><span class="emo">🪙</span><span><b>${fmt(t.coins[0])}–${fmt(t.coins[1])} coins</b><small>every success</small></span></div>`);
+    if (t.coins) out.push(`<div class="ai-row plain"><span class="emo">🪙</span><span><b>${fmtRange(t.coins[0], t.coins[1])} coins</b><small>every success</small></span></div>`);
     for (const [id, ch, lo, hi] of t.loot || []) {
       if (id === 'seedtable' || id === 'gemtable') { out.push(`<div class="ai-row plain"><span class="emo">${id === 'seedtable' ? '🌱' : '💎'}</span><span><b>A random ${id === 'seedtable' ? 'seed' : 'gem'}</b><small>${oneIn(ch * (M.luck || 1))}</small></span></div>`); continue; }
       out.push(itemLine(id, lo === hi ? lo : `${lo}–${hi}`, oneIn(ch >= 1 ? 1 : ch * (M.luck || 1))));
@@ -53,8 +54,8 @@ function lootRows(a) {
     if (t.clue) out.push(itemLine('clue_' + t.clue[0], 0, oneIn(t.clue[1] * (M.luck || 1))));
   }
   const imp = Object.keys(a.out || {}).map(id => /^([a-z]+)_impling_jar$/.exec(id)).find(Boolean);
-  if (imp && IMP_LOOT[imp[1]]) { const T = IMP_LOOT[imp[1]]; out.push('<p class="small muted">Each jar you open gives one of these:</p>'); for (const [id, lo, hi, ch] of T) out.push(id === 'coins' ? `<div class="ai-row plain"><span class="emo">🪙</span><span><b>${fmt(lo)}–${fmt(hi)} coins</b><small>${oneIn((ch || 1) / T.length)}</small></span></div>` : itemLine(id, lo === hi ? lo : `${lo}–${hi}`, oneIn((ch || 1) / T.length))); }
-  if (a.crateDef && CRATES[a.crateDef[0]]) { const C = CRATES[a.crateDef[0]]; out.push(`<p class="small muted">Your own taps: ${oneIn(a.crateDef[1] * (M.luck || 1))} per action earns a ${nm(a.crateDef[0])}, which holds two of:</p>`); for (const [id, lo, hi] of C.loot) if (hi > 0) out.push(id === 'coins' ? `<div class="ai-row plain"><span class="emo">🪙</span><span><b>${fmt(lo)}–${fmt(hi)} coins</b></span></div>` : itemLine(id, lo === hi ? lo : `${lo}–${hi}`)); if (C.outfit) out.push(`<div class="ai-row plain"><span class="emo">👷</span><span><b>${OUTFITS[C.outfit]?.[2] || ''} outfit piece</b><small>very rare</small></span></div>`); }
+  if (imp && IMP_LOOT[imp[1]]) { const T = IMP_LOOT[imp[1]]; out.push('<p class="small muted">Each jar you open gives one of these:</p>'); for (const [id, lo, hi, ch] of T) out.push(id === 'coins' ? `<div class="ai-row plain"><span class="emo">🪙</span><span><b>${fmtRange(lo, hi)} coins</b><small>${oneIn((ch || 1) / T.length)}</small></span></div>` : itemLine(id, lo === hi ? lo : `${lo}–${hi}`, oneIn((ch || 1) / T.length))); }
+  if (a.crateDef && CRATES[a.crateDef[0]]) { const C = CRATES[a.crateDef[0]]; out.push(`<p class="small muted">Your own taps: ${oneIn(a.crateDef[1] * (M.luck || 1))} per action earns a ${nm(a.crateDef[0])}, which holds two of:</p>`); for (const [id, lo, hi] of C.loot) if (hi > 0) out.push(id === 'coins' ? `<div class="ai-row plain"><span class="emo">🪙</span><span><b>${fmtRange(lo, hi)} coins</b></span></div>` : itemLine(id, lo === hi ? lo : `${lo}–${hi}`)); if (C.outfit) out.push(`<div class="ai-row plain"><span class="emo">👷</span><span><b>${OUTFITS[C.outfit]?.[2] || ''} outfit piece</b><small>very rare</small></span></div>`); }
   return out.join('');
 }
 function actInfo(id) {

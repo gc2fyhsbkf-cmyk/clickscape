@@ -59,10 +59,12 @@ const flHandCost = (f, i, k = 1) => Math.ceil(5000 * (1 + i) * Math.pow(1.35, f.
 const flCrops = () => CROPS.filter(c => !c.livestock && LV.farming >= c.lvl);
 const flYield = c => (c.y[0] + c.y[1]) / 2 * M.yield * farmMult() * (1 + 0.2 * fhN());
 let flAcc = {};
+// harvest cycles per second for a field (v9.54: slower, and extra hands help less and less)
+function flCps(f, c) { return 1.5 * Math.pow(f.hands, 0.75) / Math.max(10, c.time * M.grow); }
 function farmlandTick(dt) {
   (S.farmlands || []).forEach((f, i) => {
     const c = CROP_BY_ID[f.crop]; if (!c || !f.hands) return;
-    const cycles = (flAcc[i] || 0) + f.hands * dt / Math.max(10, c.time * M.grow);
+    const cycles = (flAcc[i] || 0) + flCps(f, c) * dt;
     let n = Math.floor(cycles); flAcc[i] = cycles - n; if (!n) return;
     const seed = c.id + '_seed';
     if (have(seed) < n) { const sp = SHOP.seeds.find(s => s.id === seed); const need = n - have(seed); if (sp && S.coins >= sp.price * need * 2) { S.coins -= sp.price * need; add(seed, need); } }
@@ -78,7 +80,7 @@ tickCore = (orig => function (dt) { orig(dt); farmlandTick(dt); })(tickCore);
 function farmlandPanel() {
   const F = S.farmlands || [], crops = flCrops(), cap = workerCap();
   const rows = F.map((f, i) => {
-    const c = CROP_BY_ID[f.crop], rate = c && f.hands ? f.hands * flYield(c) * 60 / Math.max(10, c.time * M.grow) : 0;
+    const c = CROP_BY_ID[f.crop], rate = c && f.hands ? flYield(c) * 60 * flCps(f, c) : 0;
     return `<div class="upg"><div class="upg-icon">${c ? itemIcon(c.cropItem || c.id) : '🟫'}</div><div class="upg-main"><b>Farmland ${i + 1}: ${c ? c.name : 'nothing planted'}</b>
       <small>🧑‍🌾 ${f.hands}/${cap} hands · ${c && f.hands ? `≈${fmtD(rate)}/min` : 'needs a crop and hands'}${f.idle ? ' · <span class="cb-red">out of seeds</span>' : ''}</small>
       <div class="shop-btns"><button class="btn small" data-act="fl-crop" data-i="${i}" data-d="-1">◀</button><button class="btn small" data-act="fl-crop" data-i="${i}" data-d="1">▶ crop</button>

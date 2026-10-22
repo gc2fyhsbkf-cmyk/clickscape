@@ -34,7 +34,7 @@ let flMade = {}, flToastT = 0;
 farmlandTick = function (dt) {
   (S.farmlands || []).forEach((f, i) => {
     const c = CROP_BY_ID[f.crop]; if (!c || !f.hands) return;
-    const cycles = (flAcc[i] || 0) + FL_SPEED * f.hands * dt / Math.max(10, c.time * M.grow);
+    const cycles = (flAcc[i] || 0) + flCps(f, c) * dt;
     let n = Math.floor(cycles); flAcc[i] = cycles - n; if (!n) return;
     const seed = c.id + '_seed';
     if (have(seed) < n) { const sp = SHOP.seeds.find(s => s.id === seed); const need = n - have(seed); if (sp && S.coins >= sp.price * need * 2) { S.coins -= sp.price * need; add(seed, need); } }
@@ -42,7 +42,7 @@ farmlandTick = function (dt) {
     remove(seed, n);
     const id = c.cropItem || c.id, y = Math.max(1, Math.round(n * flYield(c)));
     add(id, y); logItem(id, y); f.made = (f.made || 0) + y; flMade[id] = (flMade[id] || 0) + y;
-    gainXP('farming', (c.pxp + c.hxp * y / n) * n * 0.5);
+    gainXP('farming', (c.pxp + c.hxp * y / n) * n * 1.5);
   });
   flToastT += dt;
   if (flToastT >= 60 && Object.keys(flMade).length) {
@@ -54,7 +54,7 @@ farmlandTick = function (dt) {
 // a plain-language summary at the top of the Farming page
 viewFarming = (orig => function () {
   const F = S.farmlands || [];
-  const rates = F.map(f => { const c = CROP_BY_ID[f.crop]; return c && f.hands ? [c, FL_SPEED * f.hands * flYield(c) * 3600 / Math.max(10, c.time * M.grow)] : null; }).filter(Boolean);
+  const rates = F.map(f => { const c = CROP_BY_ID[f.crop]; return c && f.hands ? [c, flYield(c) * 3600 * flCps(f, c)] : null; }).filter(Boolean);
   const sum = {}; rates.forEach(([c, r]) => { const id = c.cropItem || c.id; sum[id] = (sum[id] || 0) + r; });
   const panel = `<div class="panel farm-guide"><h3>🌱 How your farm works</h3>
     <div class="trib">🟫 <b>Patches</b> <small>· plant & harvest by tapping. Farmhands (${fhN()}) tend them for you and add +${fhN() * 20}% crops.</small></div>

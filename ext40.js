@@ -82,7 +82,7 @@ const ago = t => { const s = Math.max(0, (now() - t) / 1000); return s < 5 ? 'ju
 function farmAutoStrip() {
   const n = fhN(), F = (S.farmlands || []).filter(f => CROP_BY_ID[f.crop] && f.hands), L = S.fhLog;
   const fhLine = n ? `🧑‍🌾 <b>${n} farmhand${n > 1 ? 's' : ''}</b> harvest & replant your patches${L?.t ? ` · last: <b>${fmt(L.y || 0)} ${CROP_BY_ID[L.c]?.name || ''}</b> ${ago(L.t)}` : ' · waiting for a crop to be ready'}` : '🧑‍🌾 No farmhands yet: patches only grow when you plant them';
-  const rate = F.reduce((a, f) => { const c = CROP_BY_ID[f.crop]; return a + f.hands * flYield(c) * 60 / Math.max(10, c.time * M.grow); }, 0);
+  const rate = F.reduce((a, f) => { const c = CROP_BY_ID[f.crop]; return a + flYield(c) * 60 * flCps(f, c); }, 0);
   const idle = F.filter(f => f.idle).length;
   const flLine = F.length ? `🌾 <b>${F.length} farmland${F.length > 1 ? 's' : ''}</b> producing ≈ <b>${fmtD(rate)}/min</b>${idle ? ` · <span class="cb-red">${idle} out of seeds</span>` : ''}` : '🌾 No working farmland yet: buy one below for non-stop crops';
   return `<div class="panel small farm-auto"><b>🤖 Running on its own</b><div class="${n ? 'on' : ''}">${fhLine}</div><div class="${F.length ? 'on' : ''}">${flLine}</div></div>`;

@@ -66,4 +66,3 @@ document.addEventListener('click', e => {
 viewSig = (orig => function () { return UI.view === 'house' ? orig() + JSON.stringify(S.lifetime.estate || {}) + (S.lifetime.skinsBought || []).length + (S.lifetime.titlesBought || []).length + Math.floor(Math.log10(1 + S.coins)) : orig(); })(viewSig);
 
 function boot75() { boot74(); recalc(); UI.force = true; render(); }
-boot75();

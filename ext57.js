@@ -40,7 +40,7 @@ document.addEventListener('click', clearMemo, true);
 const NEW_OUTFITS = {
   headchef: ['cooking', '#e8e4d8', 'Head chef', '#c02020'], devotee: ['prayer', '#e8d890', 'Devotee', '#ffffff'], alchemist: ['herblore', '#4aa84a', 'Alchemist', '#c8e86a'],
   artisan: ['crafting', '#b85ab8', 'Artisan', '#ffd84a'], bowyer: ['fletching', '#6a8a2a', 'Bowyer', '#c8a060'], nightshade: ['thieving', '#34344a', 'Nightshade', '#8a6ad8'],
-  windrunner: ['agility', '#3ab8d8', 'Windrunner', '#ffffff'], excavator: ['archaeology', '#a8743a', 'Excavator', '#e8c070'], tracker: ['hunter', '#6a5a32', 'Tracker', '#a8c060'],
+  windrunner: ['agility', '#3ab8d8', 'Windrunner', '#ffffff'], excavator: ['archaeology', '#a8743a', 'Scrapper', '#e8c070'], tracker: ['hunter', '#6a5a32', 'Tracker', '#a8c060'],
   corsair: ['sailing', '#2a4a8a', 'Corsair', '#e8c040'],
 };
 for (const [k, [sk, tint, name, trim]] of Object.entries(NEW_OUTFITS)) {
