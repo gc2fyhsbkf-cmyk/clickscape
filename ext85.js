@@ -118,4 +118,3 @@ flushFeed = function () {
 };
 
 function boot85() { boot84(); for (const m of MONSTERS) m.tierV = -1; applyBossScale(); UI.force = true; render(); }
-boot85();
