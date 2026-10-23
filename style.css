@@ -1257,3 +1257,13 @@ body.skin-lightning .stage-bg::before { background: radial-gradient(ellipse 70% 
 /* make the shop-skin particles a touch bolder */
 body.skin-royal .stage-bg::before, body.skin-obsidian .stage-bg::before, body.skin-sakura .stage-bg::before, body.skin-frost .stage-bg::before { background-size: 70px 90px; filter: drop-shadow(0 0 2px rgba(255,255,255,.6)); }
 body.skin-lightning .stage, .wd-prev { position: relative; }
+/* v9.91 Farming stations */
+.stage-bg.field { background: linear-gradient(180deg, #6aa8d8 0%, #9ccfe8 38%, #6a9a3a 39%, #4a7a2a 100%); }
+.stage-bg.field::after { content: ''; position: absolute; inset: 39% 0 0; background: repeating-linear-gradient(90deg, rgba(60,40,20,.35) 0 6px, transparent 6px 22px); pointer-events: none; }
+.stage-bg.pasture { background: linear-gradient(180deg, #7ab8e0 0%, #b8def0 40%, #7ab04a 41%, #5a8a32 100%); }
+.stage-bg.pasture::after { content: ''; position: absolute; left: 0; right: 0; top: 52%; height: 14px; background: repeating-linear-gradient(90deg, #8a6a3a 0 4px, transparent 4px 26px), linear-gradient(#8a6a3a, #8a6a3a) 0 4px / 100% 3px no-repeat; pointer-events: none; }
+.belt-row { display: flex; gap: 6px; margin: 6px 0 4px; flex-wrap: wrap; }
+.belt-slot { display: inline-flex; flex-direction: column; align-items: center; min-width: 46px; padding: 4px; border: 1px solid var(--line, #444); border-radius: 8px; background: rgba(0,0,0,.2); }
+.belt-slot svg { width: 26px; height: 26px; } .belt-slot small { font-size: 10px; opacity: .85; }
+.belt-slot.empty { justify-content: center; color: #8a7a5a; font-size: 18px; min-height: 44px; }
+.herb-hint { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
