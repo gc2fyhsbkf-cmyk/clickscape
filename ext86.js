@@ -39,4 +39,3 @@ css86.textContent = `#nav{gap:2px;grid-template-columns:repeat(7,1fr)}#nav butto
 document.head.appendChild(css86);
 
 function boot86() { boot85(); renderNav(); UI.view = 'home'; UI.force = true; render(); }
-boot86();

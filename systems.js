@@ -309,7 +309,7 @@ function finishClue(tier) {
 function clueTierFor(lvl) { return lvl < 25 ? 'easy' : lvl < 70 ? 'medium' : lvl < 150 ? 'hard' : 'elite'; }
 function monsterExtras(m) {
   const out = [];
-  const ch = (m.boss ? 1 / 60 : 1 / 128) * M.luck;
+  const ch = (m.boss ? 1 / 85 : 1 / 180) * M.luck; // v9.69: maps a little rarer
   if (rnd() < ch) { const t = m.boss ? 'elite' : clueTierFor(m.lvl); add('clue_' + t, 1); out.push(`Clue scroll (${t})`); if (!OFF) { toast(`📜 ${m.name} dropped a <b>${t}</b> clue scroll!`, 'rare'); SFX.play('clue'); } }
   const se = activeSeason();
   if (se && rnd() < 1 / 30) { add(se.token, 1); out.push(ITEMS[se.token].name); }

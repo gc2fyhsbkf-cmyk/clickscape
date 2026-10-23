@@ -286,7 +286,7 @@ function openMonsterInfo(id) {
     return `<div class="drop ${cls}" ${pet ? '' : `data-act="info" data-id="${iid}"`}><span class="ar-icon">${pet ? `<span class="emo">${PETS[iid.slice(4)].icon}</span>` : itemIcon(iid)}</span>
       <span class="ar-main"><b>${pet ? PETS[iid.slice(4)].name + ' (pet)' : it.name}</b><small>${a === b ? a : a + '–' + b} · ${rate}${CLOG_ITEMS.has(iid) ? (got ? ' · 📒 ✔' : ' · 📒') : ''}</small></span><span class="rate ${cls}">${rate}</span></div>`;
   }).join('');
-  const clue = m.boss ? 'elite 1/60' : `${clueTierFor(m.lvl)} 1/128`;
+  const clue = m.boss ? 'elite 1/85' : `${clueTierFor(m.lvl)} 1/180`;
   openModal(`<div class="mon-info"><div class="mi-head"><span class="mi-icon" style="${monFilter(m)}">${m.icon}</span><div><h2>${m.name}${m.boss ? ' 👑' : ''}</h2><p class="muted small">Level ${m.lvl} · ${m.hp} HP · max hit ${enemyMaxHit(m)} · attacks every ${m.spd}s${S.kills[m.id] ? ` · ${fmt(S.kills[m.id])} kills` : ''}</p></div></div>
     ${monReqs(m).length ? `<p class="small reqs">${monReqs(m).join(' · ')}</p>` : ''}
     <p class="small">${m.coins ? `🪙 ${fmt(m.coins[0])}–${fmt(m.coins[1])} coins · ` : ''}📜 Clue: ${clue}${activeSeason() ? ` · ${activeSeason().icon} ${ITEMS[activeSeason().token].name.toLowerCase()} 1/30` : ''}</p>

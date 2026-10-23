@@ -248,7 +248,7 @@ function doYield(st, a, n, xpScale = 1) {
   for (const id in a.out) add(id, a.out[id] * ok);
   gainXP(sk, a.xp * ok * xpScale);
   track('yield', st, ok); track('act', a.id, ok);
-  if (['mine', 'forest', 'fish', 'dig'].includes(st)) { const k = rollCount(ok, (1 / 3000) * M.luck); if (k) { const t = clueTierFor(LV[sk] * 1.6); add('clue_' + t, k); if (!OFF) { toast(`📜 You find a <b>${t}</b> clue scroll while skilling!`, 'rare'); SFX.play('clue'); } } }
+  if (['mine', 'forest', 'fish', 'dig'].includes(st)) { const k = rollCount(ok, (1 / 4200) * M.luck); if (k) { const t = clueTierFor(LV[sk] * 1.6); add('clue_' + t, k); if (!OFF) { toast(`📜 You find a <b>${t}</b> clue scroll while skilling!`, 'rare'); SFX.play('clue'); } } }
   const tslot = STATIONS[st].tool, tool = tslot && ITEMS[S.equip[tslot]];
   if (tool?.bonus && ok > 0) gainXP(tool.bonus.skill, a.xp * ok * xpScale * tool.bonus.frac);
   // bonus drops
