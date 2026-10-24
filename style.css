@@ -1267,3 +1267,53 @@ body.skin-lightning .stage, .wd-prev { position: relative; }
 .belt-slot svg { width: 26px; height: 26px; } .belt-slot small { font-size: 10px; opacity: .85; }
 .belt-slot.empty { justify-content: center; color: #8a7a5a; font-size: 18px; min-height: 44px; }
 .herb-hint { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+/* v9.96 boss styles: volleys, charges, style tag */
+.bmx-style { position: absolute; left: 6px; top: 6px; z-index: 6; font-size: .68rem; font-weight: 700; padding: 2px 7px; border-radius: 10px; background: rgba(0,0,0,.55); color: #ffe08a; border: 1px solid rgba(255,224,138,.4); pointer-events: none; }
+.bm2-pr.on { border-color: #60e0ff; background: rgba(20,70,110,.9); box-shadow: 0 0 10px rgba(96,224,255,.7); }
+.bmx-volley { position: absolute; left: 0; right: 0; top: 50px; display: flex; justify-content: center; gap: 6px; }
+.bmx-orb { position: relative; width: 30px; height: 30px; display: grid; place-items: center; font-size: 17px; border-radius: 50%; background: rgba(0,0,0,.6); border: 2px solid #888; overflow: hidden; }
+.bmx-orb.st-melee { border-color: #ff6a40; } .bmx-orb.st-ranged { border-color: #60d060; } .bmx-orb.st-magic { border-color: #a070ff; }
+.bmx-orb.gone { opacity: .25; } .bmx-orb.next { transform: scale(1.25); box-shadow: 0 0 10px #fff; }
+.bmx-orb.next i { position: absolute; left: 0; right: 0; bottom: 0; height: 100%; background: rgba(255,60,40,.35); transform-origin: bottom; animation: bmxFill linear forwards; }
+@keyframes bmxFill { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.bm2 .bmx-volley ~ .bm2-prays { top: 90px; }
+.bmx-charge { position: absolute; left: 50%; top: 58%; transform: translate(-50%, -50%); width: 120px; height: 120px; }
+.bmx-ring { position: absolute; left: 50%; top: 50%; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+.bmx-ring.target { width: 64px; height: 64px; border: 3px dashed #ffe08a; }
+.bmx-ring.closing { width: 64px; height: 64px; border: 4px solid #ff3a20; animation: bmxClose linear forwards; }
+@keyframes bmxClose { from { width: 230px; height: 230px; opacity: .5; } to { width: 64px; height: 64px; opacity: 1; } }
+.bmx-dodge { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 58px; height: 58px; border-radius: 50%; font: inherit; font-size: .62rem; font-weight: 800; color: #fff; background: radial-gradient(circle, #3a8ad8, #1a3a6a); border: 2px solid #9adfff; touch-action: manipulation; }
+/* v9.96 Road of Transcendence & covenants */
+.road-list { display: flex; flex-direction: column; gap: 4px; }
+.road-step { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; background: rgba(0,0,0,.2); border: 1px solid rgba(255,255,255,.06); opacity: .6; }
+.road-step.got { opacity: 1; border-color: rgba(96,208,96,.35); } .road-step.next { opacity: 1; border-color: #ffd040; box-shadow: 0 0 8px rgba(255,208,64,.35); }
+.road-step .rs-n { min-width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: .72rem; font-weight: 800; background: #3a2e1e; color: #ffe08a; }
+.road-step .rs-ic { font-size: 20px; } .road-step div { flex: 1; min-width: 0; } .road-step b { display: block; font-size: .84rem; } .road-step small { font-size: .72rem; opacity: .85; }
+.cov-slots { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; }
+.cov-slot, .cov-card { font: inherit; color: inherit; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 6px; border-radius: 10px; border: 1px dashed #8a7a5a; background: rgba(0,0,0,.25); text-align: center; }
+.cov-slot.set, .cov-card { border-style: solid; border-color: #a08a50; } .cov-slot span, .cov-card span { font-size: 24px; } .cov-slot b, .cov-card b { font-size: .8rem; }
+.cov-slot small, .cov-card small { font-size: .68rem; line-height: 1.2; } .cov-slot:disabled { opacity: .85; }
+.cov-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0; } .cov-card.on { border-color: #60e0ff; box-shadow: 0 0 8px rgba(96,224,255,.5); } .cov-card:disabled { opacity: .4; }
+/* v9.96 events & event skins */
+.ev-banner { cursor: pointer; border-color: #c8a040; background: linear-gradient(90deg, rgba(200,160,64,.18), rgba(0,0,0,.15)); }
+.ev-banner .ev-go { font-size: 24px; color: #ffe08a; } .ev-now h2 { margin-bottom: 4px; }
+.skinchip-gilded { --msc: #ffd040; } .skinchip-bloodmoon { --msc: #e01a2a; } .skinchip-autumn { --msc: #e8803a; } .skinchip-arcane { --msc: #8a6aff; } .skinchip-midas { --msc: #ffe680; } .skinchip-verdant { --msc: #5ae07a; } .skinchip-warbanner { --msc: #c84a3a; }
+body.skin-gilded .stage { --s1: #ffd040; --s2: #8a6a10; --s3: rgba(255,208,64,.18); --sg: rgba(255,208,64,.6); --sgw: 14px; }
+body.skin-bloodmoon .stage { --s1: #e01a2a; --s2: #4a0a10; --s3: rgba(200,20,40,.3); --sg: rgba(224,26,42,.7); --sgw: 18px; }
+body.skin-autumn .stage { --s1: #e8803a; --s2: #6a3a10; --s3: rgba(232,128,58,.22); --sg: rgba(232,128,58,.55); --sgw: 12px; }
+body.skin-arcane .stage { --s1: #8a6aff; --s2: #2a1a6a; --s3: rgba(138,106,255,.25); --sg: rgba(138,106,255,.65); --sgw: 16px; }
+body.skin-midas .stage { --s1: #ffe680; --s2: #c8a020; --s3: rgba(255,230,128,.25); --sg: rgba(255,220,100,.8); --sgw: 18px; }
+body.skin-verdant .stage { --s1: #5ae07a; --s2: #1a5a2a; --s3: rgba(90,224,122,.2); --sg: rgba(90,224,122,.55); --sgw: 14px; }
+body.skin-warbanner .stage { --s1: #c84a3a; --s2: #9aa0a8; --s3: rgba(200,74,58,.2); --sg: rgba(200,74,58,.55); --sgw: 12px; }
+body.skin-gilded .stage-bg::before, body.skin-bloodmoon .stage-bg::before, body.skin-autumn .stage-bg::before, body.skin-arcane .stage-bg::before, body.skin-midas .stage-bg::before, body.skin-verdant .stage-bg::before, body.skin-warbanner .stage-bg::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+body.skin-gilded .stage-bg::before { background-image: radial-gradient(2.4px 2.4px at 14px 20px, #ffd040, transparent), radial-gradient(1.8px 1.8px at 62px 70px, #fff2a0, transparent), radial-gradient(2.6px 2.6px at 86px 34px, #ffc020, transparent), radial-gradient(1.6px 1.6px at 40px 104px, #ffe27a, transparent); background-size: 100px 120px; animation: pRise 7s linear infinite, twinkle 1.8s ease-in-out infinite; }
+body.skin-bloodmoon .stage-bg::before { background: radial-gradient(circle at 84% 22%, rgba(255,60,60,.85) 0 16px, rgba(200,20,30,.35) 17px 34px, transparent 60px); animation: toxicPulse 4s ease-in-out infinite; }
+body.skin-bloodmoon .stage-bg::after { background: linear-gradient(180deg, rgba(120,0,10,.35), rgba(30,0,0,.25)); mix-blend-mode: multiply; }
+body.skin-autumn .stage-bg::before { background-image: radial-gradient(4px 2.6px at 20px 20px, #e8803a, transparent), radial-gradient(3.4px 2.2px at 74px 70px, #c8501a, transparent), radial-gradient(4px 2.8px at 48px 104px, #f0b040, transparent), radial-gradient(3px 2px at 92px 38px, #a8401a, transparent); background-size: 110px 120px; animation: pFallSlant 8s linear infinite; }
+body.skin-arcane .stage-bg::before { background-image: radial-gradient(2px 2px at 18px 30px, #b8a0ff, transparent), radial-gradient(1.6px 1.6px at 66px 80px, #8ad0ff, transparent), radial-gradient(2.4px 2.4px at 44px 10px, #d0b8ff, transparent), radial-gradient(1.4px 1.4px at 90px 60px, #a080ff, transparent); background-size: 100px 120px; animation: pRise 10s linear infinite, twinkle 2.4s ease-in-out infinite; }
+body.skin-arcane .stage-bg::after { background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(138,106,255,.25), transparent 70%); mix-blend-mode: screen; animation: toxicPulse 3s ease-in-out infinite; }
+body.skin-midas .stage::after { content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(115deg, transparent 38%, rgba(255,240,170,.4) 50%, transparent 62%); background-size: 250% 100%; animation: skinShine 2.6s linear infinite; }
+body.skin-midas .stage-bg::after { background: linear-gradient(180deg, rgba(255,220,100,.28), rgba(200,150,30,.15)); mix-blend-mode: screen; }
+body.skin-verdant .stage-bg::before { background-image: radial-gradient(2.2px 2.2px at 12px 40px, #c8ff8a, transparent), radial-gradient(1.8px 1.8px at 58px 90px, #8aff9a, transparent), radial-gradient(2.4px 2.4px at 84px 20px, #e0ffa0, transparent), radial-gradient(1.6px 1.6px at 36px 70px, #a0ff8a, transparent); background-size: 100px 110px; animation: twinkle 1.6s ease-in-out infinite; }
+body.skin-warbanner .stage-bg::before { background-image: radial-gradient(2px 2px at 20px 30px, #ff7a3a, transparent), radial-gradient(1.5px 1.5px at 70px 90px, #c8c8c8, transparent), radial-gradient(2px 2px at 46px 60px, #ff5a2a, transparent); background-size: 100px 120px; animation: pRise 5s linear infinite; }
+body.skin-warbanner .stage::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 10px; z-index: 2; pointer-events: none; background: repeating-linear-gradient(180deg, #c84a3a 0 12px, #7a1a10 12px 24px); border-radius: inherit; }
