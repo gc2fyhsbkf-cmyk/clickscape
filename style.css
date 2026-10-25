@@ -1344,3 +1344,59 @@ body.skin-abyssal .stage-bg::after { background: radial-gradient(circle at 50% 5
 .skr-lv { font-size: .76rem; font-weight: 700; color: #ffe08a; min-width: 52px; text-align: right; } .skr-st { font-size: .7rem; min-width: 58px; text-align: right; color: #c8b8ff; }
 .ska-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0; } .ska-grid > div { padding: 6px 8px; border-radius: 8px; background: rgba(0,0,0,.25); display: flex; flex-direction: column; gap: 3px; } .ska-grid small { font-size: .74rem; display: flex; align-items: center; gap: 4px; } .ska-grid small svg { width: 18px; height: 18px; }
 .sh-title .lvlnum { margin-left: 6px; }
+/* v10.1 skill ascension fireworks */
+.skfw { position: fixed; inset: 0; z-index: 9999; pointer-events: auto; background: radial-gradient(circle at 50% 45%, rgba(40,20,90,.55), rgba(0,0,0,.6)); animation: fwFade 3.6s ease forwards; }
+@keyframes fwFade { 0% { opacity: 0; } 8% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+.fw-burst { position: absolute; width: 0; height: 0; }
+.fw-burst i { position: absolute; left: 0; top: 0; width: 6px; height: 6px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); opacity: 0; animation: fwPop 1.4s cubic-bezier(.1,.7,.3,1) forwards; }
+@keyframes fwPop { 0% { opacity: 1; transform: rotate(var(--a)) translateX(0) scale(1.2); } 70% { opacity: 1; } 100% { opacity: 0; transform: rotate(var(--a)) translateX(90px) scale(.4); } }
+.fw-card { position: absolute; left: 50%; top: 58%; transform: translate(-50%, -50%) scale(.6); display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 16px 26px; border-radius: 16px; background: linear-gradient(180deg, #4a3aa8, #221a5a); border: 2px solid #ffd040; box-shadow: 0 0 30px rgba(255,208,64,.6); color: #fff; animation: fwCard .5s .15s cubic-bezier(.2,1.6,.4,1) forwards; text-align: center; }
+@keyframes fwCard { to { transform: translate(-50%, -50%) scale(1); } }
+.fw-card .fw-ic { font-size: 40px; } .fw-card b { font-size: 1.2rem; color: #ffe08a; } .fw-card span { font-size: 1.5rem; font-weight: 900; color: #ffd040; text-shadow: 0 0 10px #ffb020; } .fw-card small { font-size: .75rem; opacity: .9; }
+/* v10.2 skin decorations & tap bursts */
+.skin-deco { position: absolute; inset: 0; z-index: 3; pointer-events: none; background: var(--dc); -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; opacity: .9; filter: drop-shadow(0 0 4px var(--dc)); border-radius: inherit; }
+.skin-deco.anim-writhe { animation: dcWrithe 3.2s ease-in-out infinite; transform-origin: 50% 50%; }
+@keyframes dcWrithe { 0%, 100% { transform: skewX(0) scale(1); } 25% { transform: skewX(4deg) scale(1.02, .98); } 50% { transform: skewX(-3deg) scale(.98, 1.03); } 75% { transform: skewX(2deg) scale(1.01); } }
+.skin-deco.anim-sway { animation: dcSway 4s ease-in-out infinite; transform-origin: 100% 0; } @keyframes dcSway { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(1.2deg) translateY(1px); } }
+.skin-deco.anim-shimmer { animation: dcShim 2.6s ease-in-out infinite; } @keyframes dcShim { 0%, 100% { opacity: .65; } 50% { opacity: 1; filter: drop-shadow(0 0 8px var(--dc)); } }
+.skin-deco.anim-pulse { animation: dcPulse 2.4s ease-in-out infinite; } @keyframes dcPulse { 0%, 100% { opacity: .7; } 50% { opacity: 1; filter: drop-shadow(0 0 10px var(--dc)) brightness(1.3); } }
+.skin-deco.anim-twinkle { animation: twinkle 1.8s ease-in-out infinite; }
+.skin-deco.anim-spin { animation: dcPulse 3s ease-in-out infinite, dcHue 8s linear infinite; } @keyframes dcHue { to { filter: drop-shadow(0 0 6px var(--dc)) hue-rotate(40deg); } }
+.skin-deco.anim-hue { animation: dcHue2 5s linear infinite; } @keyframes dcHue2 { to { filter: drop-shadow(0 0 6px var(--dc)) hue-rotate(360deg); } }
+.skin-deco.anim-buzz { animation: neonBuzzDeco 5s steps(1) infinite; } @keyframes neonBuzzDeco { 0%, 90%, 93%, 100% { opacity: 1; } 91%, 94% { opacity: .2; } }
+.skin-deco.anim-flicker { animation: dcFlick 1.4s ease-in-out infinite; } @keyframes dcFlick { 0%, 100% { transform: scaleY(1); opacity: .85; } 40% { transform: scaleY(1.06); opacity: 1; } 70% { transform: scaleY(.95); } }
+.skin-deco.anim-flicker { transform-origin: 50% 100%; }
+.tapfx { position: absolute; width: 0; height: 0; z-index: 6; pointer-events: none; }
+.tapfx i { position: absolute; left: 0; top: 0; width: 6px; height: 6px; margin: -3px 0 0 -3px; background: var(--c); opacity: 0; animation: tfFly .75s cubic-bezier(.15,.7,.3,1) forwards; }
+@keyframes tfFly { 0% { opacity: 1; transform: rotate(var(--a)) translateX(0) rotate(var(--r)) scale(1.1); } 100% { opacity: 0; transform: rotate(var(--a)) translateX(var(--d)) rotate(calc(var(--r) + 120deg)) scale(.5); } }
+.tf-spark i { width: 3px; height: 11px; border-radius: 2px; box-shadow: 0 0 6px var(--c); }
+.tf-star i, .tf-flake i { width: 10px; height: 10px; margin: -5px; clip-path: polygon(50% 0, 61% 38%, 100% 50%, 61% 62%, 50% 100%, 39% 62%, 0 50%, 39% 38%); }
+.tf-flake i { clip-path: polygon(50% 0, 56% 40%, 93% 25%, 60% 50%, 93% 75%, 56% 60%, 50% 100%, 44% 60%, 7% 75%, 40% 50%, 7% 25%, 44% 40%); }
+.tf-coin i { width: 9px; height: 9px; margin: -4.5px; border-radius: 50%; box-shadow: inset -2px -2px 0 rgba(0,0,0,.25), 0 0 6px var(--c); }
+.tf-shard i { width: 6px; height: 13px; clip-path: polygon(50% 0, 100% 40%, 50% 100%, 0 40%); }
+.tf-ember i { width: 5px; height: 5px; border-radius: 50%; box-shadow: 0 0 8px 2px var(--c); animation-name: tfEmber; animation-duration: .85s; }
+@keyframes tfEmber { 0% { opacity: 1; transform: rotate(var(--a)) translateX(0); } 100% { opacity: 0; transform: rotate(var(--a)) translateX(var(--d)) translateY(-14px) scale(.3); } }
+.tf-crown i { width: 11px; height: 8px; clip-path: polygon(0 100%, 0 20%, 25% 60%, 50% 0, 75% 60%, 100% 20%, 100% 100%); }
+.tf-petal i { width: 10px; height: 6px; border-radius: 60% 0 60% 0; animation-name: tfPetal; animation-duration: .95s; }
+@keyframes tfPetal { 0% { opacity: 1; transform: rotate(var(--a)) translateX(0) rotate(var(--r)); } 100% { opacity: 0; transform: rotate(var(--a)) translateX(var(--d)) translateY(18px) rotate(calc(var(--r) + 240deg)); } }
+.tf-leaf i { width: 11px; height: 6px; border-radius: 0 100% 0 100%; animation-name: tfPetal; animation-duration: 1s; }
+.tf-ring i { width: 10px; height: 10px; margin: -5px; border-radius: 50%; background: transparent; border: 3px solid var(--c); box-shadow: 0 0 10px var(--c), inset 0 0 6px var(--c); animation: tfRing .6s ease-out forwards; }
+.tf-ring i:nth-child(2) { animation-delay: .12s !important; }
+@keyframes tfRing { 0% { opacity: 1; transform: scale(.3); } 100% { opacity: 0; transform: scale(7); } }
+.tf-implode i { width: 120px; height: 120px; margin: -60px; border-radius: 50%; background: radial-gradient(circle, transparent 40%, var(--c) 52%, transparent 62%); animation: tfImplode .6s ease-in forwards; }
+@keyframes tfImplode { 0% { opacity: 0; transform: scale(1.4); } 30% { opacity: 1; } 100% { opacity: 0; transform: scale(.05); } }
+.tf-glyph i { width: 70px; height: 70px; margin: -35px; border-radius: 50%; background: transparent; border: 2px dashed var(--c); box-shadow: 0 0 12px var(--c); animation: tfGlyph .8s ease-out forwards; }
+@keyframes tfGlyph { 0% { opacity: 1; transform: scale(.2) rotate(0); } 100% { opacity: 0; transform: scale(1.6) rotate(180deg); } }
+.tf-splat i { width: 9px; height: 9px; border-radius: 50% 40% 60% 45%; box-shadow: 0 0 6px var(--c); animation-name: tfSplat; }
+@keyframes tfSplat { 0% { opacity: 1; transform: rotate(var(--a)) translateX(0) scale(1.4); } 100% { opacity: 0; transform: rotate(var(--a)) translateX(var(--d)) translateY(10px) scale(.6, .9); } }
+.tf-slash i { width: 80px; height: 3px; margin: -1.5px -40px; border-radius: 3px; box-shadow: 0 0 10px var(--c); animation: tfSlash .45s ease-out forwards; }
+@keyframes tfSlash { 0% { opacity: 1; transform: rotate(var(--a)) scaleX(0); } 50% { opacity: 1; transform: rotate(var(--a)) scaleX(1); } 100% { opacity: 0; transform: rotate(var(--a)) scaleX(1.2); } }
+.tf-ribbon i { width: 60px; height: 30px; margin: -15px 0 0 0; background: transparent; border-top: 4px solid var(--c); border-radius: 50%; filter: drop-shadow(0 0 6px var(--c)); transform-origin: 0 50%; animation: tfRibbon .9s ease-out forwards; }
+@keyframes tfRibbon { 0% { opacity: 1; transform: rotate(var(--a)) scale(.2); } 100% { opacity: 0; transform: rotate(calc(var(--a) + 140deg)) scale(1.3); } }
+.tf-tendril i { width: 70px; height: 22px; margin: -11px 0 0 0; background: transparent; border-top: 4px solid var(--c); border-radius: 50% 50% 0 0; filter: drop-shadow(0 0 5px #7a5aff); transform-origin: 0 50%; animation: tfTendril .8s cubic-bezier(.2,.8,.3,1) forwards; }
+@keyframes tfTendril { 0% { opacity: 1; transform: rotate(var(--a)) scaleX(0) skewY(0); } 45% { opacity: 1; transform: rotate(var(--a)) scaleX(1) skewY(18deg); } 70% { transform: rotate(var(--a)) scaleX(.9) skewY(-14deg); } 100% { opacity: 0; transform: rotate(var(--a)) scaleX(.2) skewY(0); } }
+.stage, .wd-prev { position: relative; }
+@media (prefers-reduced-motion: reduce) { .skin-deco, .tapfx i { animation: none !important; } .tapfx { display: none; } }
+.stage > .skin-deco, .stage > .tapfx { grid-column: 1 / -1 !important; grid-row: auto !important; }
+.stage > .skin-deco { position: absolute !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: auto !important; height: auto !important; z-index: 4 !important; margin: 0 !important; padding: 0 !important; }
+.stage > .tapfx { position: absolute !important; z-index: 6 !important; margin: 0 !important; padding: 0 !important; }
