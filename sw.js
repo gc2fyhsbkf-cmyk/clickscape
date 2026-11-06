@@ -1,7 +1,7 @@
 // Clickscape service worker — keeps the game playable offline.
 // Bump VERSION whenever you change any file so phones pick up the update.
-const VERSION = 'clickscape-v10.79';
-const FILES = ['./', 'index.html', 'style.css?v=10.79', 'app.js?v=10.79', 'manifest.webmanifest?v=10.79', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
+const VERSION = 'clickscape-v10.84';
+const FILES = ['./', 'index.html', 'style.css?v=10.84', 'app.js?v=10.84', 'manifest.webmanifest?v=10.84', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).catch(() => { })); self.skipWaiting(); });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k)))).then(() => self.clients.claim()));
