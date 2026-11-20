@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Clickscape</title>
+  <meta name="description" content="An idle clicker adventure: mine, smelt, smith, fish, farm, dig and fight your way to level 99.">
+  <meta name="theme-color" content="#2b241a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Clickscape">
+  <link rel="manifest" href="manifest.webmanifest?v=11.89">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css?v=11.89">
+</head>
+<body>
+  <header id="top">
+    <div class="brand">Click<span>scape</span> <small style="font-size:.55rem;color:#b0a083;font-family:system-ui">v11.89</small></div>
+    <div id="buffs"></div>
+    <div class="purse"><span class="coin">🪙</span><span id="coins">0</span></div>
+  </header>
+  <main id="view"></main>
+  <nav id="nav"></nav>
+  <div id="feed" class="empty" data-act="openlog" aria-live="polite"></div>
+  <div id="floaters"></div>
+  <div id="modal" hidden></div>
+  <script src="app.js?v=11.89"></script>
+</body>
+</html>
